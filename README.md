@@ -1,5 +1,7 @@
 ﻿# When Continuous Physical Processes Can Compute
 
+**[→ Homepage](https://jonland82.github.io/continuous-computation/)**
+
 This repo is about a simple question: when does a continuous physical process count as a real computation rather than just a changing signal? The answer developed here is that computation appears only when coarse-grained states are readable, stable, and predictive, and those properties are usually thermodynamic achievements rather than free gifts of description. The four HTML pages present that argument as an overview plus three connected papers spanning framework, worked examples, and geometry.
 
 This repository is a small static HTML project about when a continuous physical process can genuinely support a finite symbolic computation.
