@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>When Continuous Trajectories Can and Cannot Compute</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Cinzel:wght@400;500;600&family=Source+Code+Pro:wght@300;400;500&display=swap" rel="stylesheet">
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']],
+    tags: 'ams',
+    macros: {
+      TV:   '{\\mathrm{TV}}',
+      EI:   '{\\mathrm{EI}}',
+      CCG:  '{\\mathrm{CCG}}',
+      KL:   '{D_{\\mathrm{KL}}}',
+      Tc:   '{T_{\\mathrm{comp}}}',
+      smin: '{\\sigma_{\\!c}}',
+      Lc:   '\\mathcal{L}',
+      Xc:   '\\mathcal{X}'
+    }
+  },
+  svg: { fontCache: 'global', scale: 1.05 },
+  startup: { typeset: true }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+<style>
+:root {
+  --paper:      #f9f5ee;
+  --paper-mid:  #f0e9db;
+  --paper-deep: #e6dccb;
+  --ink:        #18140e;
+  --ink-2:      #3a3020;
+  --ink-3:      #6b5e48;
+  --rule:       #c9b89a;
+  --rule-light: #e2d5c0;
+  --accent:     #7a3b1e;
+  --accent-2:   #2a5068;
+  --accent-3:   #4a6e3a;
+  --gold:       #b08040;
+  --page-width: 60rem;
+  --margin-x:   clamp(1.25rem, 5vw, 4rem);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 18px; scroll-behavior: smooth; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1rem;
+  line-height: 1.9;
+}
+.top-rule {
+  height: 5px;
+  background: linear-gradient(90deg, var(--paper) 0%, var(--accent) 20%, var(--gold) 50%, var(--accent) 80%, var(--paper) 100%);
+}
+.masthead { padding: 4rem 0 3rem; border-bottom: 1px solid var(--rule); }
+.masthead-inner { max-width: var(--page-width); margin: 0 auto; padding: 0 var(--margin-x); }
+.eyebrow {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--rule-light); max-width: 6rem; }
+h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: clamp(1.8rem, 4.5vw, 3.2rem);
+  line-height: 1.12;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.subtitle {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--ink-3);
+  margin-top: 0.7rem;
+  line-height: 1.6;
+  max-width: 46rem;
+}
+.author-line {
+  margin-top: 1.8rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+.author-line .sep { width: 2rem; height: 1px; background: var(--rule); }
+.wrap { max-width: var(--page-width); margin: 0 auto; padding: 0 var(--margin-x); }
+article { padding-bottom: 5rem; }
+
+section {
+  margin-top: 3rem;
+  padding-top: 2.4rem;
+  border-top: 1px solid var(--rule-light);
+}
+.sec-header { display: flex; align-items: baseline; gap: 1.2rem; margin-bottom: 1.2rem; }
+.sec-num {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.65rem;
+  color: var(--ink-3);
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.35rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1.3;
+}
+h3 {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 1.02rem;
+  color: var(--accent);
+  margin: 1.6rem 0 0.4rem;
+  font-weight: 400;
+}
+p { margin-bottom: 0.85em; text-align: justify; hyphens: auto; }
+p + p { text-indent: 1.2em; }
+section > p:first-of-type { text-indent: 0; }
+section > p:first-of-type::first-letter {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3.2em;
+  font-weight: 300;
+  line-height: 0.78;
+  float: left;
+  margin-right: 0.05em;
+  margin-top: 0.1em;
+  color: var(--accent);
+}
+.box p:first-of-type::first-letter,
+h3 + p::first-letter,
+.figure-block p::first-letter { font-size: 1em; float: none; color: inherit; margin: 0; }
+
+.eq { margin: 1.4em 0; overflow-x: auto; padding: 0 0.2em; }
+.eq mjx-container { display: block; text-align: center; overflow: visible !important; }
+
+.box {
+  background: var(--paper-mid);
+  border: 1px solid var(--rule-light);
+  padding: 1.2rem 1.6rem;
+  margin: 1.8rem 0;
+  position: relative;
+}
+.box::before {
+  content: attr(data-label);
+  font-family: 'Cinzel', serif;
+  font-size: 0.54rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  position: absolute;
+  top: -0.56em;
+  left: 1.2rem;
+  background: var(--paper-mid);
+  padding: 0 0.5em;
+}
+.box.definition { border-left: 3px solid var(--gold); }
+.box.definition::before { color: var(--gold); }
+.box.theorem    { border-left: 3px solid var(--accent-2); }
+.box.theorem::before { color: var(--accent-2); }
+.box p:last-child { margin-bottom: 0; }
+.conditions-box p + p { text-indent: 0; }
+
+/* condition tags */
+.cond {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.60rem;
+  letter-spacing: 0.04em;
+  padding: 0.1em 0.5em;
+  border-radius: 2px;
+  white-space: nowrap;
+  vertical-align: middle;
+  margin-right: 0.25em;
+}
+.fail { background: #f5e6e0; color: #7a3b1e; border: 1px solid #d4a898; }
+.pass { background: #e5efe0; color: #3a5e2a; border: 1px solid #9ab88a; }
+
+/* comparison table */
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+  margin: 1.6rem 0;
+}
+.comp-table th {
+  font-family: 'Cinzel', serif;
+  font-size: 0.52rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-align: left;
+  padding: 0.4rem 0.8rem 0.4rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.comp-table td {
+  padding: 0.5rem 0.8rem 0.5rem 0;
+  border-bottom: 1px solid var(--rule-light);
+  vertical-align: top;
+  color: var(--ink-2);
+}
+.comp-table td:first-child {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.68rem;
+  color: var(--accent-2);
+  white-space: nowrap;
+}
+.table-scroll { width: 100%; }
+
+/* figure block */
+.figure-block {
+  margin: 2rem 0;
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+}
+.figure-inner { padding: 1.2rem 1.4rem 0.8rem; }
+.figure-caption {
+  border-top: 1px solid var(--rule-light);
+  padding: 0.7rem 1.4rem;
+  font-size: 0.82rem;
+  color: var(--ink-3);
+  font-style: italic;
+  line-height: 1.55;
+}
+.figure-caption strong {
+  font-style: normal;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.68rem;
+  color: var(--accent-2);
+  letter-spacing: 0.04em;
+}
+
+/* slider */
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 0.9rem;
+  flex-wrap: wrap;
+}
+.slider-label {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  min-width: 10rem;
+}
+.slider-control {
+  flex: 1;
+  min-width: 8rem;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--rule);
+  outline: none;
+  cursor: pointer;
+}
+.slider-control::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 2px solid var(--paper);
+  box-shadow: 0 0 0 1px var(--rule);
+}
+.slider-control::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 2px solid var(--paper);
+}
+.slider-value {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.68rem;
+  color: var(--ink-2);
+  min-width: 3.5rem;
+  text-align: right;
+}
+.verdict-strip {
+  margin-top: 0.6rem;
+  padding: 0.5rem 0.9rem;
+  font-family: 'EB Garamond', serif;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-3);
+}
+.verdict-strip.vfail     { border-left-color: #a03828; background: #fdf0ec; color: #6b2010; }
+.verdict-strip.vmarginal { border-left-color: #a07828; background: #fdf6ec; color: #6b4010; }
+.verdict-strip.vpass     { border-left-color: #3a7028; background: #eef6ea; color: #2a501a; }
+
+canvas.traj  { display: block; width: 100%; height: auto; margin-bottom: 5px; }
+canvas.strip { display: block; width: 100%; height: auto; }
+
+.canvas-legend {
+  display: flex;
+  gap: 1.4rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+.canvas-legend span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.58rem;
+  color: var(--ink-3);
+}
+.canvas-legend .sw { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+.boxed-final {
+  border: 1.5px solid var(--rule);
+  padding: 1.6rem 2rem;
+  margin: 2.4rem auto;
+  max-width: 50rem;
+  text-align: center;
+  background: #fff9f3;
+}
+.boxed-final .ornament { font-size: 0.7rem; color: var(--rule); letter-spacing: 0.4em; display: block; margin-bottom: 0.8rem; }
+.boxed-final p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.08rem;
+  line-height: 1.6;
+  text-align: center;
+  text-indent: 0;
+  color: var(--ink);
+  margin-bottom: 0;
+}
+.boxed-final p::first-letter { font-size: 1em; float: none; color: inherit; margin: 0; }
+
+.refs p {
+  font-size: 0.84rem;
+  color: var(--ink-3);
+  line-height: 1.7;
+  margin-bottom: 0.5em;
+  text-indent: 0;
+  text-align: left;
+}
+.refs p::first-letter { font-size: 1em; float: none; color: inherit; margin: 0; }
+.ref-key {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+}
+
+footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem var(--margin-x);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.footer-text {
+  font-family: 'Cinzel', serif;
+  font-size: 0.52rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+@media (max-width: 680px) {
+  :root { --margin-x: 1rem; }
+  html { font-size: 16px; }
+  .masthead { padding-top: 2.5rem; padding-bottom: 2rem; }
+  .eyebrow,
+  .author-line,
+  .sec-header,
+  footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .eyebrow::after,
+  .author-line .sep { display: none; }
+  .box,
+  .figure-inner,
+  .figure-caption,
+  .boxed-final { padding: 1.25rem; }
+  section {
+    margin-top: 2.7rem;
+    padding-top: 1.9rem;
+  }
+  p { text-align: left; hyphens: none; }
+  section > p:first-of-type::first-letter { font-size: 2.6em; }
+  .slider-row {
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+  .slider-label,
+  .slider-control,
+  .slider-value {
+    min-width: 0;
+    width: 100%;
+  }
+  .slider-value { text-align: left; }
+  .canvas-legend { gap: 0.7rem 1rem; }
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .comp-table { min-width: 34rem; }
+  .comp-table th,
+  .comp-table td { padding-right: 0.65rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="top-rule"></div>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">Coarse-Graining &nbsp;·&nbsp; Symbolic Dynamics &nbsp;·&nbsp; Emergent Computation</p>
+    <h1>When Continuous Trajectories<br>Can and Cannot Compute</h1>
+    <p class="subtitle">A worked illustration of the three conditions for emergent symbolic computation — decodability, stability, and lumpability — through the simplest continuous trajectories that fail and satisfy them</p>
+    <div class="author-line">
+      <span>Jonathan R. Landers</span>
+      <span class="sep"></span>
+      <span>Draft</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+<article>
+
+<!-- §1 -->
+<section id="s1">
+  <div class="sec-header">
+    <span class="sec-num">§ 1</span>
+    <h2>Setup and the Three Conditions</h2>
+  </div>
+
+  <p>Fix state space \(\mathcal{X} = [-1,1]\), sampling interval \(\Delta > 0\), and the binary coarse-graining \(\Pi(x) = R\) if \(x \ge 0\), \(L\) otherwise. For a trajectory \(x(t)\), define \(A_n = \Pi(x(n\Delta))\). Three conditions on \((x, \Pi, \Delta)\) are necessary for the symbolic sequence to support emergent computation.</p>
+
+  <div class="box definition conditions-box" data-label="The Three Conditions">
+    <p><strong>(i) Decodability.</strong> \(H(A_n \mid R_n) \le \varepsilon\). The current symbol must be recoverable from the observer's record. A label that cannot be read is not a computational state.</p>
+    <p><strong>(ii) Stability.</strong> \(\Pr(A_{n+1} \neq A_n) \le \eta\). The symbol must persist across one time step. An alphabet that churns faster than it can be used carries no causal content.</p>
+    <p><strong>(iii) Lumpability.</strong> For every symbol \(i\), all micro-states within \(\Pi^{-1}(i)\) must have nearly the same distribution over the next symbol:
+    \[
+      \lambda \;:=\; \sup_{\Pi(x)=\Pi(y)=i} \bigl|\mathcal{L}(A_{n+1} \mid X_n{=}x) - \mathcal{L}(A_{n+1} \mid X_n{=}y)\bigr|_{\mathrm{TV}} \;\le\; \lambda_{\max}.
+    \]
+    Knowing the macro-symbol must be enough to predict the next one. If micro-states in the same cell have different futures, the label is not carrying the information that matters.</p>
+  </div>
+
+  <p>These three conditions are not redundant. Stability says the present symbol is durable; lumpability says it is predictive; decodability says it is legible. When all three hold with parameters \((\varepsilon, \eta, \lambda)\), the symbolic trajectory lies within total variation distance \(N(\lambda + 2p_\varepsilon + \eta)\) of a genuine Markov chain over \(N\) steps — so failure of any condition directly collapses the computation epoch \(\Tc\).</p>
+</section>
+
+<!-- §2 -->
+<section id="s2">
+  <div class="sec-header">
+    <span class="sec-num">§ 2</span>
+    <h2>The Non-Amenable Case: \(x(t) = \sin(1/t)\)</h2>
+  </div>
+
+  <p>The argument \(1/t\) compresses the time axis near the origin. Zero crossings occur at \(t = 1/(n\pi)\), spacing \(\pi t_0^2\) apart near \(t_0\) — a gap that shrinks to zero as \(t_0 \to 0\). The number of crossings in any interval of length \(\Delta\) near \(t_0\) is approximately \(\Delta / (\pi t_0^2)\), which diverges.</p>
+
+  <h3><span class="cond fail">Stability ✗</span></h3>
+  <p>For any fixed \(\Delta > 0\), the flip probability \(\Pr(A_{n+1} \neq A_n) \to 1\) as \(t_n \to 0\). No choice of \(\Delta\) prevents this: the crossing density grows without bound faster than any fixed sampling rate can track.</p>
+
+  <h3><span class="cond fail">Lumpability ✗</span></h3>
+  <p>Near \(t_0 \approx 0\), two micro-states \(x = \sin(1/t_1)\) and \(y = \sin(1/t_2)\) can both sit in cell \(R\) yet have completely different next-symbol distributions — one is about to cross, the other just did. The lumpability error \(\lambda \approx 1\) for any partition boundary, since time-to-next-crossing varies enormously across micro-states within the same cell.</p>
+
+  <h3><span class="cond fail">Decodability ✗</span></h3>
+  <p>With stability and lumpability both failing, consecutive symbols become independent near the origin. The mutual information \(I(R_n; A_{n+1}) \to 0\): the observer's record is faithfully kept but conveys nothing about the future. Decodability collapses as a consequence, not independently.</p>
+
+  <p>Critically, this failure is thermodynamically irreparable. Entropy production can in general reduce \(\lambda\) via the dissipation-lumpability inequality \(\lambda \le \lambda_{\mathrm{eq}} - c\sqrt{\sigma}\) — but this requires a finite starting point. Here \(\lambda_{\mathrm{eq}} = 1\) and the root cause is not a blurry boundary but the absence of any dwell time within a cell. No non-equilibrium current can manufacture time the trajectory does not spend in a region. The computation epoch \(\Tc \approx 0\) regardless of power budget.</p>
+
+  <div class="figure-block">
+    <div class="figure-inner">
+      <div class="slider-row">
+        <span class="slider-label">Sampling interval &nbsp;\(\Delta\)</span>
+        <input type="range" min="2" max="30" value="12" id="ds1" step="1" class="slider-control">
+        <span class="slider-value" id="dl1">0.12</span>
+      </div>
+      <canvas id="tc1" class="traj" width="860" height="280"></canvas>
+      <canvas id="sc1" class="strip" width="860" height="82"></canvas>
+      <div class="canvas-legend">
+        <span><span class="sw" style="background:#3B8BD4;"></span>R &nbsp;(x ≥ 0)</span>
+        <span><span class="sw" style="background:#C04828;"></span>L &nbsp;(x &lt; 0)</span>
+        <span><span class="sw" style="background:#4a6e3a;"></span>sample</span>
+      </div>
+      <div class="verdict-strip" id="vd1"></div>
+    </div>
+    <div class="figure-caption">
+      <strong>Figure 1.</strong> \(x(t) = \sin(1/t)\) on \(t \in [0.04, 1]\). Drag \(\Delta\) — the symbol strip remains chaotic near the origin at every resolution. The flip rate does not decrease as \(\Delta \to 0\); it increases.
+    </div>
+  </div>
+</section>
+
+<!-- §3 -->
+<section id="s3">
+  <div class="sec-header">
+    <span class="sec-num">§ 3</span>
+    <h2>The Amenable Case: \(x(t) = \sin(t)\)</h2>
+  </div>
+
+  <p>Replace \(1/t\) with \(t\). Zero crossings now occur at \(t = n\pi\), separated by exactly \(\pi \approx 3.14\) — a uniform gap, independent of \(t\). This single change repairs all three conditions.</p>
+
+  <h3><span class="cond pass">Stability ✓</span></h3>
+  <p>For \(\Delta < \pi\), each sampling interval contains at most one crossing. The flip probability is bounded uniformly:
+  \[
+    \Pr(A_{n+1} \neq A_n) \;\le\; \frac{\Delta}{\pi} \;=:\; \eta(\Delta),
+  \]
+  and \(\eta(\Delta) \to 0\) as \(\Delta \to 0\). Stability is controllable by the observer's choice of sampling interval.</p>
+
+  <h3><span class="cond pass">Lumpability ✓</span></h3>
+  <p>The speed \(|\dot{x}| = |\cos t|\) is bounded, so no micro-state within a cell can be dramatically closer to the boundary than another. The spread in escape probabilities across micro-states in \(R\) is at most \(2\Delta/\pi\):
+  \[
+    \lambda \;\approx\; \frac{2\Delta}{\pi},
+  \]
+  which vanishes as \(\Delta \to 0\). The macro-symbol becomes increasingly predictive at finer sampling. Compare with \(\sin(1/t)\), where \(|\dot{x}| = |\cos(1/t)|/t^2\) grows without bound near \(t=0\) and \(\lambda \approx 1\) at all resolutions.</p>
+
+  <h3><span class="cond pass">Decodability ✓</span></h3>
+  <p>With stability and lumpability holding, the mutual information satisfies \(I(R_n; A_{n+1}) \ge \log 2 - H(\Delta/\pi)\), which approaches \(\log 2\) for small \(\Delta\). Knowing \(A_n = R\) reliably predicts \(A_{n+1} = R\). The observer's record is informative.</p>
+
+  <p>The computation epoch is now positive and grows as \(\Delta\) decreases. A small non-equilibrium drive \(\dot{W}\) reduces \(\lambda\) further via the dissipation-lumpability inequality \(\lambda \le \lambda_{\mathrm{eq}} - c\sqrt{\sigma}\), extending \(\Tc\) toward the critical point where \(\lambda = 0\) and the epoch diverges.</p>
+
+  <div class="figure-block">
+    <div class="figure-inner">
+      <div class="slider-row">
+        <span class="slider-label">Sampling interval &nbsp;\(\Delta\)</span>
+        <input type="range" min="2" max="45" value="10" id="ds2" step="1" class="slider-control">
+        <span class="slider-value" id="dl2">0.20</span>
+      </div>
+      <canvas id="tc2" class="traj" width="860" height="280"></canvas>
+      <canvas id="sc2" class="strip" width="860" height="82"></canvas>
+      <div class="canvas-legend">
+        <span><span class="sw" style="background:#3B8BD4;"></span>R &nbsp;(x ≥ 0)</span>
+        <span><span class="sw" style="background:#C04828;"></span>L &nbsp;(x &lt; 0)</span>
+        <span><span class="sw" style="background:#4a6e3a;"></span>sample</span>
+        <span style="opacity:0.7;">— — zero crossings at \(n\pi\)</span>
+      </div>
+      <div class="verdict-strip" id="vd2"></div>
+    </div>
+    <div class="figure-caption">
+      <strong>Figure 2.</strong> \(x(t) = \sin(t)\) on \(t \in [0, 6.5]\). Dashed lines mark zero crossings at \(\pi\) and \(2\pi\). For \(\Delta \lesssim \pi\) the sequence is stable and lumpable. Pushing \(\Delta > \pi\) induces failures — but they are fixable by reducing \(\Delta\). No such fix exists for Figure 1.
+    </div>
+  </div>
+</section>
+
+<!-- §4 -->
+<section id="s4">
+  <div class="sec-header">
+    <span class="sec-num">§ 4</span>
+    <h2>Summary</h2>
+  </div>
+
+  <p>The two examples are identical in range, smoothness, and coarse-graining. Their difference is purely geometric: whether the zero-crossing density is bounded or accumulates without limit.</p>
+
+  <div class="table-scroll">
+  <table class="comp-table">
+    <thead>
+      <tr><th>Condition</th><th>\(\sin(1/t)\)</th><th>\(\sin(t)\)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Stability</td>
+        <td>Fails for all \(\Delta\); flip rate → 1 as \(t \to 0\)</td>
+        <td>Holds for \(\Delta < \pi\); \(\eta = \Delta/\pi\)</td>
+      </tr>
+      <tr>
+        <td>Lumpability</td>
+        <td>\(\lambda \approx 1\) at all resolutions</td>
+        <td>\(\lambda \approx 2\Delta/\pi \to 0\) as \(\Delta \to 0\)</td>
+      </tr>
+      <tr>
+        <td>Decodability</td>
+        <td>\(I(R_n; A_{n+1}) \to 0\) near origin</td>
+        <td>\(I(R_n; A_{n+1}) \approx \log 2\) for small \(\Delta\)</td>
+      </tr>
+      <tr>
+        <td>Repaired by \(\Delta\)?</td>
+        <td>No — fails at all resolutions near origin</td>
+        <td>Yes — any \(\Delta < \pi\) suffices</td>
+      </tr>
+      <tr>
+        <td>Repaired by dissipation?</td>
+        <td>No — no dwell time to sharpen</td>
+        <td>Yes — small \(\sigma\) reduces \(\lambda\) further</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="boxed-final">
+    <span class="ornament">· · ·</span>
+    <p>Amenability to coarse-graining is not a smoothness property. It is a dwell-time property. Dissipation can sharpen a boundary; it cannot create time where none exists.</p>
+  </div>
+</section>
+
+<section id="refs">
+  <div class="sec-header">
+    <span class="sec-num">Refs</span>
+    <h2>References</h2>
+  </div>
+
+  <div class="refs">
+    <p><span class="ref-key">Shannon 1948</span>. Claude E. Shannon. <em>A Mathematical Theory of Communication</em>. <em>Bell System Technical Journal</em> 27(3), 379-423; 27(4), 623-656. The information-theoretic background for decodability and mutual information.</p>
+    <p><span class="ref-key">Lind &amp; Marcus 1995</span>. Douglas Lind and Brian Marcus. <em>An Introduction to Symbolic Dynamics and Coding</em>. Cambridge University Press. Standard background on symbolic alphabets, coding, and symbolic trajectories.</p>
+    <p><span class="ref-key">Kemeny &amp; Snell 1960</span>. John G. Kemeny and J. Laurie Snell. <em>Finite Markov Chains</em>. Van Nostrand. Classical source for state aggregation and emergent Markov descriptions.</p>
+    <p><span class="ref-key">Buchholz 1994</span>. Peter Buchholz. <em>Exact and ordinary lumpability in finite Markov chains</em>. <em>Journal of Applied Probability</em> 31(1), 59-75. Canonical structural reference for lumpability.</p>
+    <p><span class="ref-key">Freidlin &amp; Wentzell</span>. Mark I. Freidlin and Alexander D. Wentzell. <em>Random Perturbations of Dynamical Systems</em>. Springer. Standard reference on metastability, escape, and dwell-time phenomena in noisy dynamics.</p>
+  </div>
+</section>
+
+</article>
+</div>
+
+<footer>
+  <span class="footer-text">When Continuous Trajectories Can and Cannot Compute</span>
+  <span class="footer-text">Coarse-Graining &nbsp;·&nbsp; Symbolic Dynamics &nbsp;·&nbsp; Emergent Computation</span>
+</footer>
+
+<script>
+function drawExample(cfg) {
+  const { tcId, scId, dlId, dsId, vdId, T0, T1, f, Delta0, deltaTransform, crossings, getMsg } = cfg;
+  const tc=document.getElementById(tcId), sc=document.getElementById(scId);
+  const ctx=tc.getContext('2d'), sctx=sc.getContext('2d');
+  let Delta=Delta0;
+
+  function draw() {
+    const W=860,H=280,PL=50,PR=22,PT=26,PB=40;
+    const PW=W-PL-PR,PH=H-PT-PB;
+    const tx=t=>PL+(t-T0)/(T1-T0)*PW;
+    const ty=y=>PT+PH/2-y*(PH/2)*0.86;
+    ctx.clearRect(0,0,W,H);
+
+    ctx.fillStyle='rgba(59,139,212,0.07)'; ctx.fillRect(PL,PT,PW,PH/2);
+    ctx.fillStyle='rgba(192,72,40,0.07)'; ctx.fillRect(PL,PT+PH/2,PW,PH/2);
+
+    ctx.strokeStyle='rgba(0,0,0,0.05)'; ctx.lineWidth=0.5;
+    for(let t=Math.ceil(T0);t<=T1;t+=1){ctx.beginPath();ctx.moveTo(tx(t),PT);ctx.lineTo(tx(t),PT+PH);ctx.stroke();}
+
+    if(crossings){
+      crossings.forEach(t=>{
+        if(t<T0||t>T1) return;
+        ctx.strokeStyle='rgba(107,94,72,0.28)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+        ctx.beginPath();ctx.moveTo(tx(t),PT);ctx.lineTo(tx(t),PT+PH);ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='#7a3b1e'; ctx.font='italic 11px "EB Garamond",Georgia,serif'; ctx.textAlign='center';
+        ctx.fillText(t<4?'π':'2π',tx(t),PT+PH+30);
+      });
+    }
+
+    ctx.strokeStyle='rgba(0,0,0,0.20)'; ctx.lineWidth=0.8; ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(PL,ty(0));ctx.lineTo(PL+PW,ty(0));ctx.stroke();
+
+    ctx.beginPath();
+    let first=true;
+    for(let i=1;i<=4000;i++){
+      const t=T0+(T1-T0)*i/4000;
+      const px=tx(t),py=ty(Math.max(-1,Math.min(1,f(t))));
+      if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);
+    }
+    ctx.strokeStyle='rgba(42,32,16,0.62)'; ctx.lineWidth=1.6; ctx.stroke();
+
+    const samples=[];
+    let t=T0+Delta;
+    while(t<=T1+1e-9){const y=f(t);samples.push({t,y,sym:y>=0?'R':'L'});t+=Delta;}
+
+    samples.forEach(s=>{
+      const px=tx(s.t),py=ty(Math.max(-1,Math.min(1,s.y)));
+      ctx.beginPath();ctx.arc(px,py,4.5,0,Math.PI*2);
+      ctx.fillStyle='#4a6e3a';ctx.fill();
+      ctx.strokeStyle='#f9f5ee';ctx.lineWidth=1.3;ctx.stroke();
+    });
+
+    const ink3='#6b5e48';
+    ctx.fillStyle=ink3; ctx.font='11px "Source Code Pro",monospace'; ctx.textAlign='center';
+    for(let t=Math.ceil(T0);t<=T1;t+=1) ctx.fillText(t,tx(t),PT+PH+20);
+    ctx.fillText('t',PL+PW/2,H-5);
+    ctx.textAlign='right';
+    [-1,0,1].forEach(y=>ctx.fillText(y,PL-7,ty(y)+4));
+    ctx.font='500 11px "Source Code Pro",monospace'; ctx.textAlign='left';
+    ctx.fillStyle='#2a5068'; ctx.fillText('R',PL+5,PT+13);
+    ctx.fillStyle='#7a3b1e'; ctx.fillText('L',PL+5,PT+PH-7);
+
+    const SW=860,SH=82,SPL=50,SPR=22,SPT=14,SPB=18,SPW=SW-SPL-SPR;
+    sctx.clearRect(0,0,SW,SH);
+    let flips=0;
+    samples.forEach((s,i)=>{
+      const px=SPL+(s.t-T0)/(T1-T0)*SPW;
+      const isR=s.sym==='R';
+      sctx.fillStyle=isR?'rgba(59,139,212,0.70)':'rgba(192,72,40,0.70)';
+      sctx.fillRect(px-7,SPT,14,SH-SPT-SPB);
+      sctx.fillStyle='rgba(249,245,238,0.95)';
+      sctx.font='700 10px "Source Code Pro",monospace'; sctx.textAlign='center';
+      sctx.fillText(s.sym,px,SPT+(SH-SPT-SPB)/2+4);
+      if(i>0&&s.sym!==samples[i-1].sym) flips++;
+    });
+
+    const total=samples.length-1;
+    const flipRate=total>0?flips/total:0;
+    const avgRun=flips>0?Math.round(total/(flips+1)):total;
+    const m=getMsg(flipRate,flips,total,avgRun,Delta);
+    const vd=document.getElementById(vdId);
+    vd.innerHTML=m.text; vd.className='verdict-strip '+m.cls;
+  }
+
+  document.getElementById(dsId).addEventListener('input',function(){
+    Delta=cfg.deltaTransform(parseInt(this.value));
+    document.getElementById(dlId).textContent=Delta.toFixed(2);
+    draw();
+  });
+  draw();
+}
+
+drawExample({
+  tcId:'tc1',scId:'sc1',dlId:'dl1',dsId:'ds1',vdId:'vd1',
+  T0:0.04,T1:1.0, f:t=>Math.sin(1/t), Delta0:0.12,
+  deltaTransform:v=>v/100, crossings:null,
+  getMsg(flipRate,flips,total,avgRun,Delta){
+    if(flipRate>0.45) return {cls:'vfail',
+      text:`<b>All three conditions failing.</b> ${flips} flips in ${total} steps (${Math.round(flipRate*100)}% flip rate, avg. run ${avgRun}). Stability ✗ &nbsp; Lumpability ✗ &nbsp; Decodability ✗. Reducing Δ will not help — crossing density grows as t → 0.`};
+    if(flipRate>0.20) return {cls:'vmarginal',
+      text:`<b>Marginal.</b> ${flips} flips in ${total} steps (${Math.round(flipRate*100)}% flip rate). Samples are landing in the calmer large-t region. The structural failure near t = 0 persists at all resolutions.`};
+    return {cls:'vmarginal',
+      text:`<b>Low flip rate</b> at this Δ only because samples avoid the origin. Reduce Δ and the chaotic near-origin region will dominate. The structural failure is not resolved.`};
+  }
+});
+
+drawExample({
+  tcId:'tc2',scId:'sc2',dlId:'dl2',dsId:'ds2',vdId:'vd2',
+  T0:0.0,T1:6.5, f:t=>Math.sin(t), Delta0:0.20,
+  deltaTransform:v=>v/10, crossings:[Math.PI,2*Math.PI],
+  getMsg(flipRate,flips,total,avgRun,Delta){
+    const r=(Delta/Math.PI).toFixed(2);
+    if(flipRate<0.15) return {cls:'vpass',
+      text:`<b>All three conditions satisfied.</b> ${flips} flips in ${total} steps (${Math.round(flipRate*100)}% flip rate, avg. run ${avgRun}). Δ/π = ${r}. Stability ✓ &nbsp; Lumpability ✓ &nbsp; Decodability ✓`};
+    if(flipRate<0.40) return {cls:'vmarginal',
+      text:`<b>Marginal — Δ approaching π.</b> ${flips} flips in ${total} steps (${Math.round(flipRate*100)}% flip rate). Reduce Δ below π ≈ 3.14 to restore all three conditions.`};
+    return {cls:'vfail',
+      text:`<b>Δ = ${Delta.toFixed(2)} > π — sampling across crossings.</b> ${flips} flips in ${total} steps (${Math.round(flipRate*100)}% flip rate). Stability ✗ &nbsp; Lumpability ✗ &nbsp; Decodability ✗. Unlike Fig. 1, this is fixable: reduce Δ below π.`};
+  }
+});
+</script>
+</body>
+</html>

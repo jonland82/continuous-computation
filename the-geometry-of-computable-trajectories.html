@@ -1,0 +1,679 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Geometry of Computable Trajectories</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Cinzel:wght@400;500;600&family=Source+Code+Pro:wght@300;400;500&display=swap" rel="stylesheet">
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']],
+    tags: 'ams',
+    macros: {
+      TV:   '{\\mathrm{TV}}',
+      EI:   '{\\mathrm{EI}}',
+      CCG:  '{\\mathrm{CCG}}',
+      KL:   '{D_{\\mathrm{KL}}}',
+      Tc:   '{T_{\\mathrm{comp}}}',
+      smin: '{\\sigma_{\\!c}}',
+      Lc:   '\\mathcal{L}',
+      Xc:   '\\mathcal{X}'
+    }
+  },
+  svg: { fontCache: 'global', scale: 1.05 },
+  startup: { typeset: true }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+<style>
+:root {
+  --paper:      #f9f5ee;
+  --paper-mid:  #f0e9db;
+  --paper-deep: #e6dccb;
+  --ink:        #18140e;
+  --ink-2:      #3a3020;
+  --ink-3:      #6b5e48;
+  --rule:       #c9b89a;
+  --rule-light: #e2d5c0;
+  --accent:     #7a3b1e;
+  --accent-2:   #2a5068;
+  --accent-3:   #4a6e3a;
+  --gold:       #b08040;
+  --page-width: 60rem;
+  --margin-x:   clamp(1.25rem, 5vw, 4rem);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 18px; scroll-behavior: smooth; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1rem;
+  line-height: 1.9;
+}
+.top-rule {
+  height: 5px;
+  background: linear-gradient(90deg, var(--paper) 0%, var(--accent) 20%, var(--gold) 50%, var(--accent) 80%, var(--paper) 100%);
+}
+.masthead { padding: 4rem 0 3rem; border-bottom: 1px solid var(--rule); }
+.masthead-inner { max-width: var(--page-width); margin: 0 auto; padding: 0 var(--margin-x); }
+.eyebrow {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--rule-light); max-width: 6rem; }
+h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: clamp(1.8rem, 4.5vw, 3.2rem);
+  line-height: 1.12;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.subtitle {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--ink-3);
+  margin-top: 0.7rem;
+  line-height: 1.6;
+  max-width: 46rem;
+}
+.author-line {
+  margin-top: 1.8rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+.author-line .sep { width: 2rem; height: 1px; background: var(--rule); }
+.wrap { max-width: var(--page-width); margin: 0 auto; padding: 0 var(--margin-x); }
+article { padding-bottom: 5rem; }
+
+section {
+  margin-top: 3rem;
+  padding-top: 2.4rem;
+  border-top: 1px solid var(--rule-light);
+}
+.sec-header { display: flex; align-items: baseline; gap: 1.2rem; margin-bottom: 1.2rem; }
+.sec-num {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.65rem;
+  color: var(--ink-3);
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.35rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1.3;
+}
+h3 {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 1.02rem;
+  color: var(--accent);
+  margin: 1.6rem 0 0.4rem;
+  font-weight: 400;
+}
+p { margin-bottom: 0.85em; text-align: justify; hyphens: auto; }
+p + p { text-indent: 1.2em; }
+section > p:first-of-type { text-indent: 0; }
+section > p:first-of-type::first-letter {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3.2em;
+  font-weight: 300;
+  line-height: 0.78;
+  float: left;
+  margin-right: 0.05em;
+  margin-top: 0.1em;
+  color: var(--accent);
+}
+.box p:first-of-type::first-letter,
+h3 + p::first-letter,
+.figure-block p::first-letter { font-size: 1em; float: none; color: inherit; margin: 0; }
+
+.eq { margin: 1.4em 0; overflow-x: auto; padding: 0 0.2em; }
+.eq mjx-container { display: block; text-align: center; overflow: visible !important; }
+
+.box {
+  background: var(--paper-mid);
+  border: 1px solid var(--rule-light);
+  padding: 1.2rem 1.6rem;
+  margin: 1.8rem 0;
+  position: relative;
+}
+.box::before {
+  content: attr(data-label);
+  font-family: 'Cinzel', serif;
+  font-size: 0.54rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  position: absolute;
+  top: -0.56em;
+  left: 1.2rem;
+  background: var(--paper-mid);
+  padding: 0 0.5em;
+}
+.box.definition { border-left: 3px solid var(--gold); }
+.box.definition::before { color: var(--gold); }
+.box.theorem    { border-left: 3px solid var(--accent-2); }
+.box.theorem::before { color: var(--accent-2); }
+.box.corollary  { border-left: 3px solid var(--accent-3); }
+.box.corollary::before { color: var(--accent-3); }
+.box p:last-child { margin-bottom: 0; }
+
+.figure-block {
+  margin: 2rem 0;
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+}
+.figure-inner { padding: 1.4rem 1.6rem 1rem; }
+.figure-caption {
+  border-top: 1px solid var(--rule-light);
+  padding: 0.7rem 1.6rem;
+  font-size: 0.82rem;
+  color: var(--ink-3);
+  font-style: italic;
+  line-height: 1.55;
+}
+.figure-caption strong {
+  font-style: normal;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.68rem;
+  color: var(--accent-2);
+  letter-spacing: 0.04em;
+}
+
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+  margin: 1.6rem 0;
+}
+.comp-table th {
+  font-family: 'Cinzel', serif;
+  font-size: 0.52rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-align: left;
+  padding: 0.4rem 0.8rem 0.4rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.comp-table td {
+  padding: 0.5rem 0.8rem 0.5rem 0;
+  border-bottom: 1px solid var(--rule-light);
+  vertical-align: top;
+  color: var(--ink-2);
+}
+.comp-table td:first-child {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.68rem;
+  color: var(--accent-2);
+  white-space: nowrap;
+}
+.table-scroll { width: 100%; }
+
+.boxed-final {
+  border: 1.5px solid var(--rule);
+  padding: 1.6rem 2rem;
+  margin: 2.4rem auto;
+  max-width: 50rem;
+  text-align: center;
+  background: #fff9f3;
+}
+.boxed-final .ornament { font-size: 0.7rem; color: var(--rule); letter-spacing: 0.4em; display: block; margin-bottom: 0.8rem; }
+.boxed-final p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.08rem;
+  line-height: 1.6;
+  text-align: center;
+  text-indent: 0;
+  color: var(--ink);
+  margin-bottom: 0;
+}
+.boxed-final p::first-letter { font-size: 1em; float: none; color: inherit; margin: 0; }
+
+.refs p {
+  font-size: 0.84rem;
+  color: var(--ink-3);
+  line-height: 1.7;
+  margin-bottom: 0.5em;
+  text-indent: 0;
+  text-align: left;
+}
+.refs p::first-letter { font-size: 1em; float: none; color: inherit; margin: 0; }
+.ref-key {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+}
+
+footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.4rem var(--margin-x);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.footer-text {
+  font-family: 'Cinzel', serif;
+  font-size: 0.52rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+@media (max-width: 680px) {
+  :root { --margin-x: 1rem; }
+  html { font-size: 16px; }
+  .masthead { padding-top: 2.5rem; padding-bottom: 2rem; }
+  .eyebrow,
+  .author-line,
+  .sec-header,
+  footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .eyebrow::after,
+  .author-line .sep { display: none; }
+  .box,
+  .figure-inner,
+  .figure-caption,
+  .boxed-final { padding: 1.25rem; }
+  section {
+    margin-top: 2.7rem;
+    padding-top: 1.9rem;
+  }
+  p { text-align: left; hyphens: none; }
+  section > p:first-of-type::first-letter { font-size: 2.6em; }
+  .boxed-final p { font-size: 1rem; }
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .comp-table { min-width: 34rem; }
+  .comp-table th,
+  .comp-table td { padding-right: 0.65rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="top-rule"></div>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">Coarse-Graining &nbsp;·&nbsp; Symbolic Dynamics &nbsp;·&nbsp; Emergent Computation</p>
+    <h1>The Geometry of<br>Computable Trajectories</h1>
+    <p class="subtitle">On the structure of the two sets into which all continuous trajectories divide — those that can support symbolic computation, and those that cannot — and what separates them</p>
+    <div class="author-line">
+      <span>Jonathan R. Landers</span>
+      <span class="sep"></span>
+      <span>Draft</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+<article>
+
+<!-- §1 -->
+<section id="s1">
+  <div class="sec-header">
+    <span class="sec-num">§ 1</span>
+    <h2>The Partition</h2>
+  </div>
+
+  <p>Every continuous trajectory \(x(t)\) either can or cannot support symbolic computation under some choice of coarse-graining \(\Pi\) and sampling interval \(\Delta\). This gives a natural partition of the space of continuous functions into two sets. Call them \(\mathcal{A}\) (amenable) and \(\mathcal{N}\) (non-amenable):</p>
+
+  <div class="eq">\[
+    \mathcal{A} \;=\; \bigl\{x \in C(\mathbb{R}) \;:\; \exists\,(\Pi, \Delta)\text{ s.t. decodability, stability, and lumpability all hold}\bigr\}
+  \]</div>
+  <div class="eq">\[
+    \mathcal{N} \;=\; C(\mathbb{R}) \setminus \mathcal{A}.
+  \]</div>
+
+  <p>The question is: what is the geometry of this partition? Where is the boundary? What are the structural properties of each set? And what does it cost, in thermodynamic terms, to move from \(\mathcal{N}\) into \(\mathcal{A}\)?</p>
+
+  <p>The answer turns on a single geometric property of a trajectory: the structure of its zero set — or more generally, the set of times at which it crosses a cell boundary.</p>
+
+  <div class="box definition" data-label="Definition: Zero-Crossing Density">
+    <p>For a trajectory \(x(t)\) and a cell boundary value \(c\), define the <em>crossing set</em>
+    \[ Z_c(x) = \{t \in \mathbb{R} : x(t) = c\}. \]
+    The trajectory is in \(\mathcal{A}\) if and only if there exists a coarse-graining \(\Pi\) such that \(Z_c(x)\) has no accumulation points in any bounded interval — equivalently, that crossings are locally finite. The minimum dwell time is then
+    \[ \tau_{\min}(x, \Pi) = \inf_t \bigl\{\text{length of time spent in current cell before next crossing}\bigr\} > 0. \]
+    \(\mathcal{A}\) is precisely the set of trajectories for which such a \(\Pi\) and positive \(\tau_{\min}\) exist. \(\mathcal{N}\) is the set for which none does.</p>
+  </div>
+</section>
+
+<!-- §2 -->
+<section id="s2">
+  <div class="sec-header">
+    <span class="sec-num">§ 2</span>
+    <h2>Algebraic and Topological Properties</h2>
+  </div>
+
+  <p>The set \(\mathcal{A}\) has a number of surprising non-properties. It is tempting to assume that the amenable trajectories form a well-behaved subspace — a cone, a convex set, a closed subspace. None of these hold.</p>
+
+  <h3>\(\mathcal{A}\) is not a vector space</h3>
+  <p>The sum of two amenable trajectories need not be amenable. Take \(x_1(t) = \sin(t)\) and \(x_2(t) = \sin(1/t) - \sin(t)\). Both are in \(\mathcal{A}\): \(x_1\) trivially, and \(x_2\) because its crossings, while irregular, remain locally finite away from the origin. Yet \(x_1 + x_2 = \sin(1/t) \in \mathcal{N}\). Amenability is not preserved by superposition.</p>
+
+  <h3>\(\mathcal{A}\) is not closed under uniform limits</h3>
+  <p>One can construct a sequence \(x_n \in \mathcal{A}\) converging uniformly to \(x \in \mathcal{N}\). Consider \(x_n(t) = \sin(t) \cdot \mathbf{1}_{t > 1/n} + \sin(1/t) \cdot \mathbf{1}_{t \le 1/n}\): each \(x_n\) is amenable (the non-amenable region is pushed toward zero), but the limit is \(\sin(1/t)\). The boundary \(\partial\mathcal{A}\) is not closed — amenability can be lost in the limit.</p>
+
+  <h3>\(\mathcal{A}\) is not convex</h3>
+  <p>A convex combination \(\alpha x + (1-\alpha)y\) with \(x, y \in \mathcal{A}\) can exit \(\mathcal{A}\) by the same superposition argument. The set has no convex structure to exploit.</p>
+
+  <p>What \(\mathcal{A}\) does have is a natural <em>stratification</em> by minimum dwell time. For each \(\tau > 0\), define the level set</p>
+  <div class="eq">\[
+    \mathcal{A}_\tau \;=\; \bigl\{x \in \mathcal{A} : \tau_{\min}(x, \Pi^*) \ge \tau\bigr\}
+  \]</div>
+  <p>where \(\Pi^*\) is the optimal coarse-graining for \(x\). These level sets are nested — \(\mathcal{A}_{\tau'} \subset \mathcal{A}_\tau\) for \(\tau' > \tau\) — and their union is \(\mathcal{A}\). Each \(\mathcal{A}_\tau\) is closed under time-reparametrisations that preserve minimum gap structure, and the deeper a trajectory sits within \(\mathcal{A}\), the longer its computation epoch and the less dissipation required to maintain it.</p>
+</section>
+
+<!-- §3 -->
+<section id="s3">
+  <div class="sec-header">
+    <span class="sec-num">§ 3</span>
+    <h2>The Measure-Theoretic View</h2>
+  </div>
+
+  <p>The most striking geometric fact about this partition is what happens when one asks about the size of \(\mathcal{A}\) in a probabilistic sense. The natural measure on continuous trajectories is Wiener measure — the law of Brownian motion. Under this measure, the set \(\mathcal{A}\) has measure zero.</p>
+
+  <div class="box theorem" data-label="Observation: Computability is Measure-Zero">
+    <p>Let \(\mu_W\) denote Wiener measure on \(C([0,1])\). Then \(\mu_W(\mathcal{A}) = 0\).</p>
+    <p>A Brownian path \(B_t\) crosses any fixed level \(c\) on a random closed set of times with Hausdorff dimension \(\frac{1}{2}\). This set has accumulation points everywhere — in fact it is a perfect set, closed and dense in itself. There is no interval, however small, in which the crossing set is finite. Brownian motion is therefore in \(\mathcal{N}\) almost surely, and since \(\mathcal{A}\) is a set of measure zero in any neighbourhood of any Brownian path, it has measure zero globally.</p>
+  </div>
+
+  <p>This is a deep result about what computation means physically. Generic continuous processes — those sampled from the natural measure on path space — do not compute. The set of processes that can support symbolic dynamics is a negligible subset of all possible trajectories. This means that engineering a physical system into \(\mathcal{A}\) is always a non-trivial imposition of structure on what would otherwise be generic continuous noise.</p>
+
+  <p>The Hausdorff dimension of the zero set provides a quantitative measure of how far a trajectory is from \(\mathcal{A}\). For \(\sin(t)\), the zero set is countable — dimension zero. For Brownian motion, it is dimension \(\frac{1}{2}\). For \(\sin(1/t)\), the zero set near the origin is countably infinite but has an accumulation point, placing it strictly between the two. The dimension of the zero set is a natural distance from \(\mathcal{A}\): the further a trajectory is from amenability, the richer its crossing structure.</p>
+</section>
+
+<!-- §4 -->
+<section id="s4">
+  <div class="sec-header">
+    <span class="sec-num">§ 4</span>
+    <h2>The Spectral Picture</h2>
+  </div>
+
+  <p>The cleanest characterisation of the partition uses the transfer operator \(\mathcal{P}\), which propagates probability densities forward under the dynamics. For a trajectory arising from a stochastic differential equation \(dx = f(x)\,dt + \sqrt{2\beta^{-1}}\,dW\), the transfer operator is the Fokker-Planck semigroup, and its spectral properties encode everything about the long-run behaviour of the system.</p>
+
+  <div class="box definition" data-label="Spectral Characterisation of 𝒜">
+    <p>A trajectory \(x(t)\) is in \(\mathcal{A}\) with respect to coarse-graining \(\Pi\) if and only if the transfer operator \(\mathcal{P}_\Delta\) at lag \(\Delta\) has a <em>spectral gap</em> above its leading eigenvalue \(\lambda_1 = 1\):
+    \[
+      x \in \mathcal{A} \;\iff\; \lambda_1 - \lambda_2 > 0,
+    \]
+    where \(\lambda_2\) is the second-largest eigenvalue of \(\mathcal{P}_\Delta\) restricted to the coarse-grained state space.</p>
+    <p>The spectral gap \(\lambda_1 - \lambda_2\) measures how quickly probability densities within each macro-cell mix to uniformity. A positive gap means micro-states forget their initial positions within a cell — they become lumpable. A zero gap means they retain memory indefinitely, and lumpability fails.</p>
+  </div>
+
+  <p>The stratification of \(\mathcal{A}\) by \(\tau_{\min}\) corresponds directly to the stratification by spectral gap magnitude. Large \(\tau_{\min}\) means a large gap — the dynamics rapidly equilibrates within each cell. Small \(\tau_{\min}\) means the gap is barely open. The boundary \(\partial\mathcal{A}\) is exactly where the spectral gap closes: \(\lambda_2 \to \lambda_1 = 1\).</p>
+
+  <p>This closing of the spectral gap is a <em>phase transition</em>. The computation epoch \(\Tc\) depends on the lumpability error \(\lambda \approx 1 - (\lambda_1 - \lambda_2)\Delta^{-1}\), so as the gap closes, \(\lambda \to 1\) and \(\Tc \to 0\). The boundary \(\partial\mathcal{A}\) is therefore the set of trajectories for which computation is possible in principle but not in practice — an infinitely thin region where the epoch has collapsed to zero.</p>
+</section>
+
+<!-- §5 -->
+<section id="s5">
+  <div class="sec-header">
+    <span class="sec-num">§ 5</span>
+    <h2>Dissipation as Motion in Function Space</h2>
+  </div>
+
+  <p>The dissipation-lumpability inequality \(\lambda \le \lambda_{\mathrm{eq}} - c\sqrt{\sigma}\) can be read geometrically as a statement about how entropy production moves a trajectory in function space. A system at equilibrium (\(\sigma = 0\)) sits at a fixed point in the \((\lambda, \sigma)\) plane. Turning on dissipation moves it along a curve toward smaller \(\lambda\), which in the function-space picture corresponds to moving toward the interior of \(\mathcal{A}\).</p>
+
+  <p>Formally, for a trajectory governed by \(dx = f(x)\,dt + \sqrt{2\beta^{-1}}\,dW\) with non-equilibrium driving \(f = -\nabla V + g\) (where \(g\) is the non-gradient part generating currents), the entropy production rate is</p>
+  <div class="eq">\[
+    \sigma \;=\; \beta \int |g(x)|^2\,\pi(dx),
+  \]</div>
+  <p>where \(\pi\) is the stationary measure. The dissipation-lumpability inequality then gives a lower bound on how far the driven trajectory has moved into \(\mathcal{A}\) relative to its equilibrium position: the distance travelled is at least \(c\sqrt{\sigma}\) in the \(\lambda\)-coordinate. The critical dissipation \(\sigma_c = (\lambda_{\mathrm{eq}}/c)^2\) is the minimum cost of reaching \(\partial\mathcal{A}\) from the equilibrium position — the thermodynamic price of entry.</p>
+
+  <div class="box corollary" data-label="Thermodynamic Cost of Entry into 𝒜">
+    <p>A trajectory at equilibrium with lumpability error \(\lambda_{\mathrm{eq}}\) requires entropy production rate at least
+    \[
+      \sigma_c(\Pi) \;=\; \left(\frac{\lambda_{\mathrm{eq}}(\Pi)}{c(\Pi)}\right)^{\!2}
+    \]
+    to reach the boundary \(\partial\mathcal{A}\). Any further dissipation \(\sigma > \sigma_c\) places the trajectory strictly inside \(\mathcal{A}\), at lumpability error \(\lambda = 0\). The constant \(c(\Pi) > 0\) depends on the geometry of the coarse-graining.</p>
+  </div>
+
+  <p>This gives a precise answer to the question of what it costs to compute. It is not merely the cost of a specific operation (erasing a bit, flipping a state) but the ongoing cost of maintaining membership in \(\mathcal{A}\) against the natural tendency of physical processes to drift toward \(\mathcal{N}\). Every living system — every cell, every neural circuit — is paying \(\sigma \ge \sigma_c\) continuously, just to remain in the set where computation is possible at all.</p>
+
+  <!-- FIGURE -->
+  <div class="figure-block">
+    <div class="figure-inner" id="fig-container">
+      <svg id="geom-svg" width="100%" viewBox="0 0 680 500" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+        <!-- subtle radial for N background -->
+        <radialGradient id="nbg" cx="35%" cy="45%" r="65%">
+          <stop offset="0%" stop-color="#f5e8e2" stop-opacity="0.7"/>
+          <stop offset="100%" stop-color="#f9f5ee" stop-opacity="0"/>
+        </radialGradient>
+        <!-- subtle radial for A interior -->
+        <radialGradient id="abg" cx="52%" cy="50%" r="55%">
+          <stop offset="0%" stop-color="#e4eef6" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#f0e9db" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+
+      <!-- N background wash -->
+      <rect x="28" y="28" width="624" height="444" rx="8" fill="url(#nbg)"/>
+      <rect x="28" y="28" width="624" height="444" rx="8" fill="none" stroke="#c9b89a" stroke-width="0.75" stroke-dasharray="5,4"/>
+
+      <!-- A region -->
+      <ellipse cx="400" cy="252" rx="196" ry="162" fill="url(#abg)"/>
+      <ellipse cx="400" cy="252" rx="196" ry="162" fill="none" stroke="#2a5068" stroke-width="1.2"/>
+
+      <!-- Boundary glow ring -->
+      <ellipse cx="400" cy="252" rx="196" ry="162" fill="none" stroke="#b08040" stroke-width="9" stroke-opacity="0.13"/>
+
+      <!-- Stratification rings inside A (foliation by τ_min) -->
+      <ellipse cx="400" cy="252" rx="56"  ry="46"  fill="none" stroke="#2a5068" stroke-width="0.5" stroke-dasharray="3,4" stroke-opacity="0.35"/>
+      <ellipse cx="400" cy="252" rx="110" ry="91"  fill="none" stroke="#2a5068" stroke-width="0.5" stroke-dasharray="3,4" stroke-opacity="0.28"/>
+      <ellipse cx="400" cy="252" rx="158" ry="130" fill="none" stroke="#2a5068" stroke-width="0.5" stroke-dasharray="3,4" stroke-opacity="0.20"/>
+
+      <!-- τ_min label on stratification -->
+      <text font-family="'EB Garamond',Georgia,serif" font-style="italic" font-size="10" fill="#2a5068" fill-opacity="0.55" text-anchor="start" x="463" y="250">τ_min increasing →</text>
+
+      <!-- Region labels -->
+      <text font-family="'Cormorant Garamond',Georgia,serif" font-style="italic" font-size="18" fill="#7a3b1e" fill-opacity="0.85" x="62" y="78">𝒩</text>
+      <text font-family="'Source Code Pro',monospace" font-size="10" fill="#7a3b1e" fill-opacity="0.75" x="62" y="96">non-amenable</text>
+      <text font-family="'Source Code Pro',monospace" font-size="10" fill="#7a3b1e" fill-opacity="0.6" x="62" y="112">τ_min = 0</text>
+      <text font-family="'Source Code Pro',monospace" font-size="10" fill="#7a3b1e" fill-opacity="0.6" x="62" y="128">spectral gap = 0</text>
+
+      <text font-family="'Cormorant Garamond',Georgia,serif" font-style="italic" font-size="18" fill="#2a5068" fill-opacity="0.9" text-anchor="middle" x="400" y="200">𝒜</text>
+      <text font-family="'Source Code Pro',monospace" font-size="10" fill="#2a5068" fill-opacity="0.75" text-anchor="middle" x="400" y="218">amenable</text>
+      <text font-family="'Source Code Pro',monospace" font-size="10" fill="#2a5068" fill-opacity="0.6" text-anchor="middle" x="400" y="234">τ_min &gt; 0</text>
+      <text font-family="'Source Code Pro',monospace" font-size="10" fill="#2a5068" fill-opacity="0.6" text-anchor="middle" x="400" y="250">spectral gap &gt; 0</text>
+
+      <!-- ∂𝒜 boundary label -->
+      <text font-family="'Cormorant Garamond',Georgia,serif" font-style="italic" font-size="13" fill="#7a5010" x="566" y="148">∂𝒜</text>
+      <text font-family="'Source Code Pro',monospace" font-size="9"  fill="#7a5010" fill-opacity="0.8" x="556" y="163">gap → 0</text>
+      <text font-family="'Source Code Pro',monospace" font-size="9"  fill="#7a5010" fill-opacity="0.8" x="554" y="177">τ_min → 0</text>
+      <line x1="570" y1="181" x2="563" y2="200" stroke="#b08040" stroke-width="0.8" stroke-opacity="0.6" marker-end="url(#arr)"/>
+
+      <!-- ── EXAMPLE POINTS ── -->
+
+      <!-- sin(1/t) -->
+      <circle cx="118" cy="188" r="5" fill="#C04828"/>
+      <text font-family="'EB Garamond',Georgia,serif" font-style="italic" font-size="12" fill="#6b2010" x="128" y="185">sin(1/t)</text>
+      <text font-family="'Source Code Pro',monospace" font-size="9" fill="#6b2010" fill-opacity="0.8" x="128" y="199">zeros accumulate at 0</text>
+
+      <!-- Brownian motion -->
+      <circle cx="148" cy="310" r="5" fill="#C04828"/>
+      <text font-family="'EB Garamond',Georgia,serif" font-style="italic" font-size="12" fill="#6b2010" x="158" y="307">Brownian motion</text>
+      <text font-family="'Source Code Pro',monospace" font-size="9" fill="#6b2010" fill-opacity="0.8" x="158" y="321">zero set dim = ½</text>
+
+      <!-- sin(t^α) α large, near boundary -->
+      <circle cx="542" cy="178" r="5" fill="#b08040"/>
+      <text font-family="'EB Garamond',Georgia,serif" font-style="italic" font-size="12" fill="#7a5010" x="552" y="175">sin(t^α), α ≫ 1</text>
+      <text font-family="'Source Code Pro',monospace" font-size="9" fill="#7a5010" fill-opacity="0.8" x="552" y="189">spacing → 0 as t → ∞</text>
+
+      <!-- near-threshold neuron on boundary -->
+      <circle cx="490" cy="342" r="5" fill="#b08040"/>
+      <text font-family="'EB Garamond',Georgia,serif" font-style="italic" font-size="12" fill="#7a5010" x="500" y="339">neuron at threshold</text>
+      <text font-family="'Source Code Pro',monospace" font-size="9" fill="#7a5010" fill-opacity="0.8" x="500" y="353">barrier → 0</text>
+
+      <!-- sin(t) deep in A -->
+      <circle cx="388" cy="290" r="5" fill="#2a5068"/>
+      <text font-family="'EB Garamond',Georgia,serif" font-style="italic" font-size="12" fill="#2a5068" x="398" y="287">sin(t)</text>
+      <text font-family="'Source Code Pro',monospace" font-size="9" fill="#2a5068" fill-opacity="0.8" x="398" y="301">uniform spacing π</text>
+
+      <!-- double well -->
+      <circle cx="336" cy="318" r="5" fill="#2a5068"/>
+      <text font-family="'EB Garamond',Georgia,serif" font-style="italic" font-size="12" fill="#2a5068" x="346" y="315">double-well</text>
+      <text font-family="'Source Code Pro',monospace" font-size="9" fill="#2a5068" fill-opacity="0.8" x="346" y="329">exp. dwell time</text>
+
+      <!-- transistor -->
+      <circle cx="410" cy="335" r="5" fill="#2a5068"/>
+      <text font-family="'EB Garamond',Georgia,serif" font-style="italic" font-size="12" fill="#2a5068" x="420" y="332">transistor state</text>
+      <text font-family="'Source Code Pro',monospace" font-size="9" fill="#2a5068" fill-opacity="0.8" x="420" y="346">engineered barrier</text>
+
+      <!-- ── DISSIPATION ARROW ── -->
+      <!-- from sin(1/t) toward A interior -->
+      <path d="M148 210 Q220 240 290 268" fill="none" stroke="#4a6e3a" stroke-width="1.4" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+      <text font-family="'EB Garamond',Georgia,serif" font-style="italic" font-size="11" fill="#3a5e2a" x="180" y="252">σ &gt; σ_c</text>
+      <text font-family="'Source Code Pro',monospace" font-size="9" fill="#3a5e2a" fill-opacity="0.85" x="175" y="265">dissipation</text>
+
+      <!-- ── UNIFORM LIMIT ARROW ── -->
+      <!-- from inside A toward N -->
+      <path d="M370 278 Q280 255 222 222" fill="none" stroke="#888780" stroke-width="1" stroke-dasharray="3,4" marker-end="url(#arr)"/>
+      <text font-family="'Source Code Pro',monospace" font-size="9" fill="#6b5e48" fill-opacity="0.85" x="256" y="244">uniform limit</text>
+
+      <!-- ── FOOTNOTES AT BOTTOM ── -->
+      <rect x="34" y="432" width="282" height="38" rx="4" fill="rgba(192,72,40,0.05)" stroke="#c9b89a" stroke-width="0.5"/>
+      <text font-family="'Source Code Pro',monospace" font-size="9" fill="#7a3b1e" x="44" y="447">Under Wiener measure:  μ(𝒜) = 0,  μ(𝒩) = 1</text>
+      <text font-family="'Source Code Pro',monospace" font-size="9" fill="#7a3b1e" fill-opacity="0.8" x="44" y="462">Computability is measure-zero in path space</text>
+
+      <rect x="330" y="432" width="316" height="38" rx="4" fill="rgba(42,80,104,0.05)" stroke="#c9b89a" stroke-width="0.5"/>
+      <text font-family="'Source Code Pro',monospace" font-size="9" fill="#2a5068" x="340" y="447">𝒜 is not a vector space, not convex, not closed</text>
+      <text font-family="'Source Code Pro',monospace" font-size="9" fill="#2a5068" fill-opacity="0.8" x="340" y="462">stratified by τ_min — a foliation, not a subspace</text>
+
+      </svg>
+    </div>
+    <div class="figure-caption">
+      <strong>Figure 1.</strong> The partition of continuous trajectory space into \(\mathcal{N}\) (non-amenable, outer region) and \(\mathcal{A}\) (amenable, inner ellipse). The boundary \(\partial\mathcal{A}\) is where the spectral gap closes and the minimum dwell time vanishes — a phase transition at which the computation epoch collapses. Concentric dashed ellipses inside \(\mathcal{A}\) indicate the stratification by \(\tau_{\min}\): trajectories deeper inside are more robustly computable and require less dissipation to maintain. The green dashed arrow shows the action of dissipation \(\sigma > \sigma_c\), which moves a trajectory from \(\mathcal{N}\) into \(\mathcal{A}\). The grey dashed arrow shows that uniform limits can exit \(\mathcal{A}\) — the set is not closed. Under Wiener measure, \(\mathcal{A}\) has measure zero.
+    </div>
+  </div>
+</section>
+
+<!-- §6 -->
+<section id="s6">
+  <div class="sec-header">
+    <span class="sec-num">§ 6</span>
+    <h2>Summary</h2>
+  </div>
+
+  <p>The following table collects the structural properties of the two sets and their boundary.</p>
+
+  <div class="table-scroll">
+  <table class="comp-table">
+    <thead>
+      <tr><th>Property</th><th>\(\mathcal{A}\) — amenable</th><th>\(\mathcal{N}\) — non-amenable</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Zero set</td>
+        <td>Locally finite; no accumulation points</td>
+        <td>Has accumulation points somewhere</td>
+      </tr>
+      <tr>
+        <td>Minimum dwell time</td>
+        <td>\(\tau_{\min} > 0\)</td>
+        <td>\(\tau_{\min} = 0\)</td>
+      </tr>
+      <tr>
+        <td>Spectral gap</td>
+        <td>\(\lambda_1 - \lambda_2 > 0\)</td>
+        <td>\(\lambda_1 - \lambda_2 = 0\)</td>
+      </tr>
+      <tr>
+        <td>Wiener measure</td>
+        <td>\(\mu_W(\mathcal{A}) = 0\)</td>
+        <td>\(\mu_W(\mathcal{N}) = 1\)</td>
+      </tr>
+      <tr>
+        <td>Algebraic structure</td>
+        <td>Not a subspace; not convex; not closed</td>
+        <td>Dense in \(C(\mathbb{R})\); contains all generic processes</td>
+      </tr>
+      <tr>
+        <td>Internal structure</td>
+        <td>Stratified by \(\tau_{\min}\); foliation by dwell time</td>
+        <td>Uniform — no natural stratification</td>
+      </tr>
+      <tr>
+        <td>Thermodynamic cost</td>
+        <td>Requires \(\sigma \ge \sigma_c\) to maintain</td>
+        <td>Zero — equilibrium suffices</td>
+      </tr>
+      <tr>
+        <td>Physical examples</td>
+        <td>Transistor, double-well, periodic orbit, neural spike train</td>
+        <td>Thermal noise, \(\sin(1/t)\), Brownian zero set</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>The boundary \(\partial\mathcal{A}\) — the set of trajectories where \(\tau_{\min} = 0\) and the spectral gap just closes — is the most physically significant region. It is where computation is balanced on a knife-edge: any reduction in dissipation tips a system from \(\mathcal{A}\) into \(\mathcal{N}\), and any reduction in power budget causes the computation epoch to collapse. Living systems near metabolic stress, neurons near firing threshold, and physical computers at minimum operating voltage all inhabit this boundary region. The cost of moving away from it — deeper into \(\mathcal{A}\) — is exactly what the dissipation-lumpability inequality quantifies.</p>
+
+  <div class="boxed-final">
+    <span class="ornament">· · ·</span>
+    <p>Generic continuous processes do not compute. Computation is a measure-zero property of trajectory space, maintained against the natural drift toward \(\mathcal{N}\) by a continuous thermodynamic expenditure. The boundary \(\partial\mathcal{A}\) is not a curiosity — it is where most physical computation actually lives.</p>
+  </div>
+</section>
+
+<section id="refs">
+  <div class="sec-header">
+    <span class="sec-num">Refs</span>
+    <h2>References</h2>
+  </div>
+
+  <div class="refs">
+    <p><span class="ref-key">Kemeny &amp; Snell 1960</span>. John G. Kemeny and J. Laurie Snell. <em>Finite Markov Chains</em>. Van Nostrand. Classical reference for aggregation and finite-state reductions.</p>
+    <p><span class="ref-key">Freidlin &amp; Wentzell</span>. Mark I. Freidlin and Alexander D. Wentzell. <em>Random Perturbations of Dynamical Systems</em>. Springer. Standard reference on metastability and rare transitions in noisy systems.</p>
+    <p><span class="ref-key">Deuflhard &amp; Weber 2005</span>. Peter Deuflhard and Marcus Weber. <em>Robust Perron cluster analysis in conformation dynamics</em>. <em>Linear Algebra and its Applications</em> 398, 161-184. Connects transfer-operator spectral structure to metastable coarse-grainings.</p>
+    <p><span class="ref-key">Schuette &amp; Sarich 2013</span>. Christof Schuette and Marco Sarich. <em>Metastability and Markov State Models in Molecular Dynamics</em>. American Mathematical Society. Modern reference on spectral gaps, transfer operators, and metastable state decompositions.</p>
+    <p><span class="ref-key">Morters &amp; Peres 2010</span>. Peter Morters and Yuval Peres. <em>Brownian Motion</em>. Cambridge University Press. Standard reference for Wiener measure and Brownian path geometry.</p>
+    <p><span class="ref-key">Revuz &amp; Yor 1999</span>. Daniel Revuz and Marc Yor. <em>Continuous Martingales and Brownian Motion</em>. Springer. Reference for Brownian local time, level sets, and structural properties of sample paths.</p>
+  </div>
+</section>
+
+</article>
+</div>
+
+<footer>
+  <span class="footer-text">The Geometry of Computable Trajectories</span>
+  <span class="footer-text">Coarse-Graining &nbsp;·&nbsp; Symbolic Dynamics &nbsp;·&nbsp; Emergent Computation</span>
+</footer>
+
+</body>
+</html>
+

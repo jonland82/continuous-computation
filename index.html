@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dissipation and the Emergence of Computation · Jonathan R. Landers</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Cinzel:wght@400;500;600;700&family=Source+Code+Pro:wght@300;400;500&display=swap" rel="stylesheet">
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']],
+    macros: {
+      TV:   '{\\mathrm{TV}}',
+      EI:   '{\\mathrm{EI}}',
+      CCG:  '{\\mathrm{CCG}}',
+      KL:   '{D_{\\mathrm{KL}}}',
+      Tc:   '{T_{\\mathrm{comp}}}',
+      smin: '{\\sigma_{\\!c}}',
+      Lc:   '\\mathcal{L}',
+      Xc:   '\\mathcal{X}'
+    }
+  },
+  svg: { fontCache: 'global', scale: 0.98 },
+  startup: { typeset: true }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+<style>
+/* ── TOKENS ─────────────────────────────────────────────────────── */
+:root {
+  --paper:        #f9f5ee;
+  --paper-mid:    #f0e9db;
+  --paper-deep:   #e6dccb;
+  --paper-dark:   #d8ccb4;
+  --ink:          #18140e;
+  --ink-2:        #3a3020;
+  --ink-3:        #6b5e48;
+  --ink-4:        #9a8c76;
+  --rule:         #c9b89a;
+  --rule-light:   #e2d5c0;
+  --accent:       #7a3b1e;
+  --accent-2:     #2a5068;
+  --accent-3:     #4a6e3a;
+  --gold:         #b08040;
+  --gold-light:   #d4a85a;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 18px; scroll-behavior: smooth; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1rem;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── NOISE TEXTURE OVERLAY ──────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+/* ── LAYOUT ─────────────────────────────────────────────────────── */
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 5vw, 4rem);
+}
+
+/* ── HEADER ORNAMENT ────────────────────────────────────────────── */
+.top-rule {
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--accent) 50%, var(--gold) 80%, transparent);
+  margin-bottom: 0;
+}
+
+/* ── MASTHEAD ───────────────────────────────────────────────────── */
+.masthead {
+  padding: 4rem 0 3rem;
+  text-align: center;
+  border-bottom: 1px solid var(--rule);
+}
+
+.masthead-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  margin-bottom: 2rem;
+}
+
+.masthead-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.8rem, 4.5vw, 3rem);
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.6rem;
+}
+
+.masthead-title em {
+  font-style: italic;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-size: 1.1em;
+  color: var(--accent);
+}
+
+.masthead-subtitle {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--ink-3);
+  line-height: 1.5;
+  max-width: 44rem;
+  margin: 0 auto 2rem;
+}
+
+.masthead-author {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  color: var(--ink-3);
+}
+
+.masthead-author span {
+  color: var(--rule);
+  margin: 0 0.6em;
+}
+
+/* ── ORNAMENTAL DIVIDER ─────────────────────────────────────────── */
+.ornament {
+  text-align: center;
+  color: var(--gold);
+  font-size: 1.1rem;
+  margin: 2.5rem 0;
+  letter-spacing: 0.4em;
+  opacity: 0.7;
+}
+
+.rule-thin {
+  border: none;
+  border-top: 1px solid var(--rule-light);
+  margin: 0;
+}
+
+/* ── ABSTRACT ───────────────────────────────────────────────────── */
+.abstract-section {
+  padding: 3rem 0 2.5rem;
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 0 2.5rem;
+  align-items: start;
+}
+
+.abstract-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  padding-top: 0.3rem;
+  text-align: right;
+  border-right: 1px solid var(--rule);
+  padding-right: 2rem;
+}
+
+.abstract-body {
+  font-size: 1.05rem;
+  color: var(--ink-2);
+  line-height: 1.8;
+}
+
+.abstract-body p + p {
+  margin-top: 1em;
+}
+
+/* ── ARC SECTION ────────────────────────────────────────────────── */
+.arc-section {
+  padding: 2rem 0 3rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--rule-light);
+}
+
+.section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  white-space: nowrap;
+}
+
+/* ── PAPER CARDS ────────────────────────────────────────────────── */
+.papers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.paper-item {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr;
+  gap: 0 2rem;
+  position: relative;
+  padding-bottom: 2.5rem;
+}
+
+.paper-item:last-child {
+  padding-bottom: 0;
+}
+
+/* connector line between papers */
+.paper-item:not(:last-child) .paper-number::after {
+  content: '';
+  position: absolute;
+  left: 1.75rem;
+  top: 3rem;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--rule), var(--rule-light));
+  transform: translateX(-50%);
+}
+
+.paper-number {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0.15rem;
+}
+
+.paper-number-circle {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  border: 1px solid var(--rule);
+  background: var(--paper-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.paper-item:hover .paper-number-circle {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--paper-deep);
+}
+
+.paper-content {
+  background: var(--paper-mid);
+  border: 1px solid var(--rule-light);
+  border-left: 3px solid var(--rule);
+  padding: 1.5rem 1.8rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.paper-item:nth-child(1) .paper-content { border-left-color: var(--accent); }
+.paper-item:nth-child(2) .paper-content { border-left-color: var(--accent-2); }
+.paper-item:nth-child(3) .paper-content { border-left-color: var(--accent-3); }
+
+.paper-item:hover .paper-content {
+  background: var(--paper-deep);
+  border-color: var(--rule);
+  box-shadow: 0 4px 16px rgba(24,20,14,0.06);
+}
+
+.paper-tag {
+  font-family: 'Cinzel', serif;
+  font-size: 0.55rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.paper-item:nth-child(1) .paper-tag { color: var(--accent); }
+.paper-item:nth-child(2) .paper-tag { color: var(--accent-2); }
+.paper-item:nth-child(3) .paper-tag { color: var(--accent-3); }
+
+.paper-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.35;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.01em;
+}
+
+.paper-desc {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.05rem;
+  color: var(--ink-2);
+  line-height: 1.65;
+  margin-bottom: 1.25rem;
+}
+
+.paper-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink-3);
+  transition: color 0.2s ease;
+}
+
+.paper-link:hover { color: var(--accent); }
+
+.paper-link svg {
+  width: 0.7rem;
+  height: 0.7rem;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s ease;
+}
+
+.paper-link:hover svg { transform: translateX(3px); }
+
+/* ── KEY RESULTS ────────────────────────────────────────────────── */
+.results-section {
+  padding: 2rem 0 3rem;
+  border-top: 1px solid var(--rule-light);
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.result-item {
+  background: var(--paper-mid);
+  border: 1px solid var(--rule-light);
+  padding: 1.4rem 1.5rem;
+  min-width: 0;
+}
+
+.result-label {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.65rem;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+}
+
+.result-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.result-desc {
+  font-size: 0.88rem;
+  color: var(--ink-3);
+  line-height: 1.6;
+}
+
+.refs-section {
+  padding: 2rem 0 3rem;
+  border-top: 1px solid var(--rule-light);
+}
+
+.refs p {
+  font-size: 0.84rem;
+  color: var(--ink-3);
+  line-height: 1.7;
+  margin-bottom: 0.55rem;
+}
+
+.ref-key {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.68rem;
+  color: var(--accent);
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────────── */
+.footer {
+  border-top: 1px solid var(--rule);
+  padding: 2.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-author {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--ink-4);
+}
+
+.footer-field {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 0.88rem;
+  color: var(--ink-4);
+}
+
+.bottom-rule {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--accent) 50%, var(--gold) 80%, transparent);
+  margin-top: 0;
+}
+
+/* ── ENTRANCE ANIMATION ─────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.masthead        { animation: fadeUp 0.8s ease both; animation-delay: 0.1s; }
+.abstract-section{ animation: fadeUp 0.8s ease both; animation-delay: 0.25s; }
+.arc-section     { animation: fadeUp 0.8s ease both; animation-delay: 0.4s; }
+.results-section { animation: fadeUp 0.8s ease both; animation-delay: 0.5s; }
+
+/* ── EQUATIONS ──────────────────────────────────────────────────── */
+.eq-block {
+  margin: 0.9rem 0 0.2rem;
+  padding: 0.65rem 1rem;
+  background: var(--paper-deep);
+  border-left: 2px solid var(--rule);
+  border-radius: 0 2px 2px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-width: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  -webkit-overflow-scrolling: touch;
+}
+
+.eq-block + .eq-block {
+  margin-top: 0.4rem;
+}
+
+/* MathJax SVG sizing */
+.eq-block mjx-container {
+  display: block !important;
+  text-align: center !important;
+  margin: 0 auto !important;
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .results-grid {
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .abstract-section {
+    grid-template-columns: 1fr;
+  }
+  .results-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .result-item {
+    padding: 1.2rem 1.15rem;
+  }
+  .eq-block {
+    padding: 0.6rem 0.75rem;
+  }
+  .abstract-label {
+    text-align: left;
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+    padding-right: 0;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .footer {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="top-rule"></div>
+
+<div class="page">
+
+  <!-- MASTHEAD -->
+  <header class="masthead">
+    <div class="masthead-label">Non-Equilibrium Statistical Mechanics</div>
+    <h1 class="masthead-title">Dissipation and the<br><em>Emergence of Computation</em></h1>
+    <p class="masthead-subtitle">
+      On the conditions under which continuous physical processes support finite symbolic dynamics,
+      and on the thermodynamic price of sustaining them
+    </p>
+    <div class="masthead-author">
+      Jonathan R. Landers
+      <span>·</span>
+      Three Papers
+    </div>
+  </header>
+
+  <div class="ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
+
+  <!-- ABSTRACT -->
+  <section class="abstract-section">
+    <div class="abstract-label">Overview</div>
+    <div class="abstract-body">
+      <p>
+        These three papers develop a unified framework for understanding when, and at what thermodynamic cost,
+        a continuous physical process can genuinely support a finite symbolic computation. 
+        The central observation is that the world at its base may be neither discrete nor intrinsically 
+        lawful, but an evolving continuum glimpsed through the coarse lens of finite resolution.
+      </p>
+      <p>
+        The framework proceeds in three movements. The first derives the necessary and sufficient 
+        conditions for emergent symbolic dynamics and shows that dissipation is not incidental 
+        to computation but constitutive of it. The second grounds these conditions in concrete trajectories, 
+        showing that amenability to coarse-graining is a geometric property of crossing structure, 
+        not of smoothness. The third maps the geometry of the resulting partition of function space, 
+        revealing that computation is a measure-zero property of all possible trajectories,
+        maintained against the natural drift toward generic continuous noise by a continuous
+        thermodynamic expenditure.
+      </p>
+    </div>
+  </section>
+
+  <hr class="rule-thin">
+
+  <!-- PAPERS ARC -->
+  <section class="arc-section">
+    <div class="section-header">
+      <span class="section-title">The Papers</span>
+    </div>
+
+    <div class="papers-list">
+
+      <!-- PAPER I -->
+      <div class="paper-item">
+        <div class="paper-number">
+          <div class="paper-number-circle">I</div>
+        </div>
+        <div class="paper-content">
+          <div class="paper-tag">Framework &amp; Foundations</div>
+          <div class="paper-title">Dissipation and the Emergence of Computation</div>
+          <p class="paper-desc">
+            Derives the three conditions (decodability, stability, and approximate lumpability)
+            under which a continuous physical process genuinely supports finite symbolic dynamics. 
+            Proves a Markov approximation theorem bounding the symbolic trajectory's total variation 
+            distance from a finite-state machine. Introduces the dissipation-lumpability inequality 
+            and the computation epoch, establishing that entropy production is the mechanism 
+            by which physical systems sustain symbolic computation. Closes with a co-dissipation 
+            bound: system and observer jointly fund every computation.
+          </p>
+          <a href="dissipation-and-the-emergence-of-computation.html" class="paper-link">
+            Read paper
+            <svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- PAPER II -->
+      <div class="paper-item">
+        <div class="paper-number">
+          <div class="paper-number-circle">II</div>
+        </div>
+        <div class="paper-content">
+          <div class="paper-tag">Examples &amp; Contrasts</div>
+          <div class="paper-title">When Continuous Trajectories Can and Cannot Compute</div>
+          <p class="paper-desc">
+            Grounds the abstract framework through a minimal pair: sin(<em>t</em>) and sin(1/<em>t</em>), 
+            identical in range, smoothness class, and coarse-graining map, differing only in their 
+            zero-crossing structure. Shows that sin(1/<em>t</em>) fails all three conditions simultaneously 
+            near the origin. This failure is thermodynamically irreparable, since no 
+            non-equilibrium current can manufacture dwell time the trajectory does not possess. 
+            Establishes that amenability is a dwell-time property, not a smoothness property.
+          </p>
+          <a href="when-continuous-trajectories-can-and-cannot-compute.html" class="paper-link">
+            Read paper
+            <svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- PAPER III -->
+      <div class="paper-item">
+        <div class="paper-number">
+          <div class="paper-number-circle">III</div>
+        </div>
+        <div class="paper-content">
+          <div class="paper-tag">Geometry &amp; Structure</div>
+          <div class="paper-title">The Geometry of Computable Trajectories</div>
+          <p class="paper-desc">
+            Characterises the partition of continuous function space into amenable (𝒜) 
+            and non-amenable (𝒩) trajectories. Proves that 𝒜 is neither convex, 
+            closed, nor a cone, yet admits a natural stratification by minimum dwell time. 
+            Shows that 𝒜 has measure zero under Wiener measure: generic continuous processes 
+            do not compute. Connects the stratification to the spectral gap of the transfer 
+            operator, and reads the dissipation-lumpability inequality geometrically 
+            as a statement about motion in function space: entropy production is 
+            the mechanism that drives a system from 𝒩 into the interior of 𝒜.
+          </p>
+          <a href="the-geometry-of-computable-trajectories.html" class="paper-link">
+            Read paper
+            <svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- KEY RESULTS -->
+  <section class="results-section">
+    <div class="section-header">
+      <span class="section-title">Central Results</span>
+    </div>
+
+    <div class="results-grid">
+
+      <div class="result-item">
+        <div class="result-label">Theorem 1</div>
+        <div class="result-name">Markov Approximation</div>
+        <p class="result-desc">
+          Decodability, stability, and approximate lumpability jointly bound the symbolic 
+          trajectory's TV distance from a finite-state machine over \(N\) steps.
+        </p>
+        <div class="eq-block">
+          \[\bigl|\mathcal{L}(\hat{A}_0,\ldots,\hat{A}_N) - \mathcal{L}(M_0,\ldots,M_N)\bigr|_{\mathrm{TV}}\]
+          \[\le\; N(\lambda + 2p_\varepsilon)\]
+        </div>
+      </div>
+
+      <div class="result-item">
+        <div class="result-label">Theorem 2</div>
+        <div class="result-name">Dissipation-Lumpability Inequality</div>
+        <p class="result-desc">
+          Entropy production reduces lumpability error as \(\sqrt{\sigma}\), directly extending 
+          the computation epoch toward a critical divergence at \(\sigma_c\).
+        </p>
+        <div class="eq-block">
+          \[\lambda(P,\Pi) = \lambda_{\mathrm{eq}}(\Pi) - c(\Pi)\sqrt{\sigma(P)} + O(\sigma)\]
+        </div>
+        <div class="eq-block">
+          \[\sigma_c(\Pi) := \!\left(\frac{\lambda_{\mathrm{eq}}(\Pi)}{c(\Pi)}\right)^{\!2}\]
+        </div>
+      </div>
+
+      <div class="result-item">
+        <div class="result-label">Theorem 3</div>
+        <div class="result-name">Causal Computation Gain</div>
+        <p class="result-desc">
+          \(\CCG(\Pi,P) > 0\), meaning the macro description is causally superior to the micro, only when entropy 
+          production is nonzero. Equilibrium systems cannot exhibit causal emergence.
+        </p>
+        <div class="eq-block">
+          \[\CCG(\Pi,P) := \EI(K) - \EI(P,\Pi)\]
+        </div>
+        <div class="eq-block">
+          \[\sigma = 0 \;\Rightarrow\; \CCG(\Pi,P) \le 0\]
+        </div>
+      </div>
+
+      <div class="result-item">
+        <div class="result-label">Theorem 4</div>
+        <div class="result-name">Co-Dissipation Bound</div>
+        <p class="result-desc">
+          Observer recording costs must enter the thermodynamic budget. System and observer 
+          jointly sustain every computation.
+        </p>
+        <div class="eq-block">
+          \[\dot{W}_{\mathrm{obs}} \ge \frac{k_BT\ln 2}{\Delta}\cdot H(p_\varepsilon)\]
+        </div>
+        <div class="eq-block">
+          \[W_{\mathrm{total}}(\Tc) = \bigl(\dot{W}_{\mathrm{sys}} + \dot{W}_{\mathrm{obs}}\bigr)\cdot \Tc\]
+        </div>
+      </div>
+
+      <div class="result-item">
+        <div class="result-label">Theorem 5</div>
+        <div class="result-name">Measure-Zero Computation</div>
+        <p class="result-desc">
+          The amenable set \(\mathcal{A}\) has measure zero under Wiener measure. Generic continuous 
+          processes do not compute; engineering a system into \(\mathcal{A}\) is always a non-trivial imposition.
+        </p>
+        <div class="eq-block">
+          \[\mu_W(\mathcal{A}) = 0\]
+        </div>
+        <div class="eq-block">
+          \[\mathcal{A}_\tau = \bigl\{x \in \mathcal{A} : \tau_{\min}(x,\Pi^*) \ge \tau\bigr\}\]
+        </div>
+      </div>
+
+      <div class="result-item">
+        <div class="result-label">Theorem 6</div>
+        <div class="result-name">Spectral Gap Characterisation</div>
+        <p class="result-desc">
+          The boundary \(\partial\mathcal{A}\) is exactly where the spectral gap of the transfer operator closes.
+          Dissipation drives the system toward the interior of \(\mathcal{A}\).
+        </p>
+        <div class="eq-block">
+          \[x \in \mathcal{A} \;\iff\; \lambda_1 - \lambda_2 > 0\]
+        </div>
+        <div class="eq-block">
+          \[\sigma = \beta\int |g(x)|^2\,\pi(dx) \;\ge\; \sigma_c\]
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="refs-section">
+    <div class="section-header">
+      <span class="section-title">Selected References</span>
+    </div>
+
+    <div class="refs">
+      <p><span class="ref-key">Shannon 1948</span>. Claude E. Shannon. <em>A Mathematical Theory of Communication</em>. <em>Bell System Technical Journal</em> 27(3), 379-423; 27(4), 623-656.</p>
+      <p><span class="ref-key">Kemeny &amp; Snell 1960</span>. John G. Kemeny and J. Laurie Snell. <em>Finite Markov Chains</em>. Van Nostrand.</p>
+      <p><span class="ref-key">Buchholz 1994</span>. Peter Buchholz. <em>Exact and ordinary lumpability in finite Markov chains</em>. <em>Journal of Applied Probability</em> 31(1), 59-75.</p>
+      <p><span class="ref-key">Landauer 1961</span>. Rolf Landauer. <em>Irreversibility and Heat Generation in the Computing Process</em>. <em>IBM Journal of Research and Development</em> 5, 183-191.</p>
+      <p><span class="ref-key">Bennett 1982</span>. Charles H. Bennett. <em>The Thermodynamics of Computation: A Review</em>. <em>International Journal of Theoretical Physics</em> 21, 905-940.</p>
+      <p><span class="ref-key">Hoel et al. 2013</span>. Erik P. Hoel, Larissa Albantakis, and Giulio Tononi. <em>Quantifying causal emergence shows that macro can beat micro</em>. <em>PNAS</em> 110(49), 19790-19795.</p>
+      <p><span class="ref-key">Freidlin &amp; Wentzell</span>. Mark I. Freidlin and Alexander D. Wentzell. <em>Random Perturbations of Dynamical Systems</em>. Springer.</p>
+      <p><span class="ref-key">Schütte &amp; Sarich 2013</span>. Christof Schütte and Marco Sarich. <em>Metastability and Markov State Models in Molecular Dynamics</em>. American Mathematical Society.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-author">Jonathan R. Landers</div>
+    <div class="footer-field">Non-Equilibrium Statistical Mechanics</div>
+  </footer>
+
+</div>
+
+<div class="bottom-rule"></div>
+
+</body>
+</html>

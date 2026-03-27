@@ -1,0 +1,1136 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dissipation and the Emergence of Computation</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Cinzel:wght@400;500;600&family=Source+Code+Pro:wght@300;400;500&display=swap" rel="stylesheet">
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']],
+    tags: 'ams',
+    macros: {
+      TV:   '{\\mathrm{TV}}',
+      EI:   '{\\mathrm{EI}}',
+      CCG:  '{\\mathrm{CCG}}',
+      KL:   '{D_{\\mathrm{KL}}}',
+      Tc:   '{T_{\\mathrm{comp}}}',
+      smin: '{\\sigma_{\\!c}}',
+      Lc:   '\\mathcal{L}',
+      Xc:   '\\mathcal{X}'
+    }
+  },
+  svg: {
+    fontCache: 'global',
+    scale: 1.05
+  },
+  startup: { typeset: true }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+<style>
+/* ── TOKENS ─────────────────────────────────────────────────── */
+:root {
+  --paper:      #f9f5ee;
+  --paper-mid:  #f0e9db;
+  --paper-deep: #e6dccb;
+  --ink:        #18140e;
+  --ink-2:      #3a3020;
+  --ink-3:      #6b5e48;
+  --rule:       #c9b89a;
+  --rule-light: #e2d5c0;
+  --accent:     #7a3b1e;
+  --accent-2:   #2a5068;
+  --accent-3:   #4a6e3a;
+  --gold:       #b08040;
+  --page-width: 60rem;
+  --margin-x:   clamp(1.25rem, 5vw, 4rem);
+}
+
+/* ── RESET ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 18px; scroll-behavior: smooth; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1rem;
+  line-height: 1.9;
+}
+
+/* ── PAGE ORNAMENT ──────────────────────────────────────────── */
+.top-rule {
+  height: 5px;
+  background: linear-gradient(90deg,
+    var(--paper) 0%,
+    var(--accent) 20%,
+    var(--gold) 50%,
+    var(--accent) 80%,
+    var(--paper) 100%);
+}
+
+/* ── MASTHEAD ───────────────────────────────────────────────── */
+.masthead {
+  padding: 5rem 0 4rem;
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+}
+
+.masthead-inner {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 0 var(--margin-x);
+}
+
+.eyebrow {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.eyebrow::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--rule-light);
+  max-width: 6rem;
+}
+
+h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 1.12;
+  color: var(--ink);
+  margin-bottom: 0.6rem;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 1.12rem;
+  color: var(--ink-3);
+  margin-top: 0.9rem;
+  line-height: 1.6;
+  max-width: 46rem;
+}
+
+.author-line {
+  margin-top: 2.4rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.author-line .sep {
+  width: 2rem;
+  height: 1px;
+  background: var(--rule);
+}
+
+/* ── WRAP ───────────────────────────────────────────────────── */
+.wrap {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 0 var(--margin-x);
+}
+
+/* ── ABSTRACT ───────────────────────────────────────────────── */
+.abstract-block {
+  margin: 3.5rem 0 0;
+  padding: 2rem 2.4rem;
+  background: var(--paper-mid);
+  border-left: 3px solid var(--accent);
+  font-size: 0.94rem;
+  line-height: 1.85;
+}
+
+.abstract-block .label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 0.9rem;
+}
+
+.abstract-block p { margin-bottom: 0; color: var(--ink-2); }
+
+/* ── TOC ────────────────────────────────────────────────────── */
+.toc {
+  margin: 3rem 0;
+  padding: 1.8rem 2rem;
+  background: var(--paper-mid);
+  border: 1px solid var(--rule-light);
+}
+
+.toc-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.toc ol {
+  list-style: none;
+  padding: 0;
+  columns: 2;
+  column-gap: 2rem;
+}
+
+.toc li {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin-bottom: 0.35rem;
+  break-inside: avoid;
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+.toc li a {
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+.toc li a:hover { color: var(--accent); }
+
+.toc .toc-num {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.65rem;
+  color: var(--ink-3);
+  flex-shrink: 0;
+  min-width: 1.6rem;
+}
+
+/* ── ARTICLE BODY ───────────────────────────────────────────── */
+article { padding-bottom: 7rem; }
+
+/* ── PART DIVIDERS ──────────────────────────────────────────── */
+.part {
+  margin: 5rem 0 0;
+  padding: 2.5rem 0 0;
+  border-top: 2px solid var(--rule);
+}
+
+.part-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.4rem;
+}
+
+.part-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 300;
+  color: var(--ink);
+  font-style: italic;
+}
+
+/* ── SECTIONS ───────────────────────────────────────────────── */
+section {
+  margin-top: 3.8rem;
+  padding-top: 3rem;
+  border-top: 1px solid var(--rule-light);
+}
+
+.sec-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.sec-num {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.65rem;
+  color: var(--ink-3);
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+
+h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.45rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+h3 {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 1.08rem;
+  color: var(--accent);
+  margin: 2.2rem 0 0.5rem;
+  font-weight: 400;
+}
+
+p { margin-bottom: 1em; text-align: justify; hyphens: auto; }
+
+p + p { text-indent: 1.2em; }
+p + p:first-letter { /* don't double-indent */ }
+
+/* Drop cap: first paragraph of each section only */
+section > p:first-of-type { text-indent: 0; }
+section > p:first-of-type::first-letter {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3.6em;
+  font-weight: 300;
+  line-height: 0.78;
+  float: left;
+  margin-right: 0.05em;
+  margin-top: 0.1em;
+  color: var(--accent);
+}
+
+/* suppress drop cap in boxes and after headings */
+.box p:first-of-type::first-letter,
+.abstract-block p::first-letter,
+h3 + p::first-letter { font-size: 1em; float: none; color: inherit; margin: 0; }
+
+/* ── MATH ───────────────────────────────────────────────────── */
+.eq {
+  margin: 1.9em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 0.2em;
+}
+.eq mjx-container {
+  display: block;
+  text-align: center;
+  overflow: visible !important;
+}
+
+/* ── BOXES ──────────────────────────────────────────────────── */
+.box {
+  background: var(--paper-mid);
+  border: 1px solid var(--rule-light);
+  padding: 1.5rem 1.9rem;
+  margin: 2.2rem 0;
+  position: relative;
+}
+
+.box::before {
+  content: attr(data-label);
+  font-family: 'Cinzel', serif;
+  font-size: 0.54rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  position: absolute;
+  top: -0.56em;
+  left: 1.2rem;
+  background: var(--paper-mid);
+  padding: 0 0.5em;
+}
+
+.box.theorem    { border-left: 3px solid var(--accent-2); }
+.box.theorem::before  { color: var(--accent-2); }
+.box.corollary  { border-left: 3px solid var(--accent-3); }
+.box.corollary::before { color: var(--accent-3); }
+.box.definition { border-left: 3px solid var(--gold); }
+.box.definition::before { color: var(--gold); }
+.box.lemma      { border-left: 3px solid var(--ink-3); }
+.box.lemma::before { color: var(--ink-3); }
+
+.box p:last-child  { margin-bottom: 0; }
+
+/* ── INLINE REFERENCE TAGS ──────────────────────────────────── */
+.lit {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.61rem;
+  color: var(--accent);
+  border: 1px solid var(--rule);
+  padding: 0.06em 0.4em;
+  white-space: nowrap;
+  vertical-align: middle;
+  opacity: 0.9;
+}
+
+/* ── FLOW DIAGRAM ───────────────────────────────────────────── */
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  justify-content: center;
+  margin: 2.2rem 0;
+}
+
+.flow-node {
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  padding: 0.35em 0.95em;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.7rem;
+  color: var(--ink-2);
+  letter-spacing: 0.03em;
+}
+
+.flow-arrow { color: var(--accent); font-size: 1.1rem; }
+
+/* ── PROOF SKETCH ───────────────────────────────────────────── */
+.proof {
+  border-top: 1px dashed var(--rule-light);
+  margin-top: 1.2rem;
+  padding-top: 0.9rem;
+  font-size: 0.94rem;
+  color: var(--ink-2);
+}
+
+.proof-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.54rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
+.proof p { text-indent: 0 !important; }
+.proof p::first-letter { font-size: 1em !important; float: none !important; color: inherit !important; margin: 0 !important; }
+
+/* ── KEY RESULT ─────────────────────────────────────────────── */
+.keyresult {
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 1.6rem 0;
+  margin: 2.8rem 0;
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.2rem;
+  line-height: 1.65;
+  color: var(--ink);
+  position: relative;
+}
+
+.keyresult::before { content: '❧'; color: var(--rule); font-size: 0.8rem; display: block; margin-bottom: 0.8rem; }
+.keyresult::after  { content: '❧'; color: var(--rule); font-size: 0.8rem; display: block; margin-top: 0.8rem; }
+
+/* ── BOXED SUMMARY ──────────────────────────────────────────── */
+.boxed-final {
+  border: 1.5px solid var(--rule);
+  padding: 2rem 2.4rem;
+  margin: 3rem auto;
+  max-width: 50rem;
+  text-align: center;
+  background: #fff9f3;
+  position: relative;
+}
+
+.boxed-final .ornament {
+  font-size: 0.7rem;
+  color: var(--rule);
+  letter-spacing: 0.4em;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.boxed-final p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.12rem;
+  line-height: 1.65;
+  text-align: center;
+  text-indent: 0;
+  color: var(--ink);
+  margin-bottom: 0;
+}
+
+.boxed-final p::first-letter { font-size: 1em; float: none; color: inherit; margin: 0; }
+
+/* ── CONTRIB TABLE ──────────────────────────────────────────── */
+.contrib-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.87rem;
+  margin: 2rem 0;
+}
+
+.contrib-table th {
+  font-family: 'Cinzel', serif;
+  font-size: 0.54rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-align: left;
+  padding: 0.5rem 1rem 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.contrib-table td {
+  padding: 0.65rem 1rem 0.65rem 0;
+  border-bottom: 1px solid var(--rule-light);
+  vertical-align: top;
+  color: var(--ink-2);
+}
+
+.contrib-table td:first-child {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.72rem;
+  color: var(--accent-2);
+  white-space: nowrap;
+}
+
+/* ── REFERENCES ─────────────────────────────────────────────── */
+.refs p {
+  font-size: 0.84rem;
+  color: var(--ink-3);
+  line-height: 1.7;
+  margin-bottom: 0.5em;
+  text-indent: 0;
+  text-align: left;
+}
+
+.refs p::first-letter { font-size: 1em; float: none; color: inherit; margin: 0; }
+
+.ref-key {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.6rem var(--margin-x);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.footer-text {
+  font-family: 'Cinzel', serif;
+  font-size: 0.52rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────── */
+@media (max-width: 680px) {
+  :root { --margin-x: 1rem; }
+  html { font-size: 16px; }
+  .masthead { padding-top: 3rem; padding-bottom: 2.5rem; }
+  .eyebrow,
+  .author-line,
+  .sec-header,
+  footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .eyebrow::after,
+  .author-line .sep { display: none; }
+  .abstract-block,
+  .toc,
+  .box,
+  .boxed-final { padding: 1.25rem; }
+  .part {
+    margin-top: 3.5rem;
+    padding-top: 2rem;
+  }
+  .part-title { font-size: 1.35rem; }
+  section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+  }
+  p {
+    text-align: left;
+    hyphens: none;
+  }
+  section > p:first-of-type::first-letter { font-size: 2.8em; }
+  .toc ol { columns: 1; }
+  .flow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+  .flow-node {
+    width: 100%;
+    text-align: center;
+  }
+  .flow-arrow { align-self: center; }
+  .keyresult {
+    font-size: 1.05rem;
+    padding: 1.25rem 0;
+  }
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .contrib-table { min-width: 34rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="top-rule"></div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MASTHEAD
+═══════════════════════════════════════════════════════════════ -->
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">Jonathan R. Landers &nbsp;·&nbsp; Non-Equilibrium Statistical Mechanics</p>
+    <h1>Dissipation and the<br>Emergence of Computation</h1>
+    <p class="subtitle">On the conditions under which continuous physical processes support finite symbolic dynamics, and on the thermodynamic price of sustaining them</p>
+    <div class="author-line">
+      <span>Jonathan R. Landers</span>
+      <span class="sep"></span>
+      <span>Draft</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ABSTRACT -->
+<div class="abstract-block">
+  <span class="label">Abstract</span>
+  <p>We ask when a continuous physical process genuinely supports a finite symbolic computation, and at what thermodynamic cost. Starting from the observation that the underlying world may be neither discrete nor intrinsically lawful but an evolving continuum viewed at finite resolution, we derive conditions under which an emergent finite-state machine arises: a coarse-graining must be decodable by an observer, stable over the relevant timescale, and approximately lumpable, meaning the next symbolic state depends on the current symbol rather than on the hidden microstructure beneath it. These three conditions yield a Markov approximation theorem bounding the symbolic trajectory's total variation distance from a finite-state machine, and a notion of <em>computation epoch</em>, the window over which the emergent machine remains reliable. We then close the framework's principal gap: lumpability is not a free gift of structure but a thermodynamic achievement. We derive a dissipation-lumpability inequality showing that entropy production reduces lumpability error as \(\sqrt{\sigma}\), directly extending the computation epoch. This yields a power-duration trade-off: epoch length diverges as the power budget approaches a critical threshold. We further introduce the causal computation gain \(\CCG(\Pi, P)\) and prove that it is strictly positive (meaning the macro description is causally superior to the micro) only when entropy production is nonzero. Equilibrium systems cannot exhibit causal emergence. Finally, we show that the observer's own recording costs must be included in the budget, producing a co-dissipation bound: system and observer jointly sustain every computation. The result is a single framework in which the emergence of computation becomes a precise problem in non-equilibrium statistical mechanics.</p>
+</div>
+
+<!-- TOC -->
+<nav class="toc">
+  <span class="toc-label">Contents</span>
+  <ol>
+    <li><span class="toc-num">§1</span><a href="#s1">Framing</a></li>
+    <li><span class="toc-num">§2</span><a href="#s2">Setup</a></li>
+    <li><span class="toc-num">§3</span><a href="#s3">Three Conditions</a></li>
+    <li><span class="toc-num">§4</span><a href="#s4">Emergent Finite-State Dynamics</a></li>
+    <li><span class="toc-num">§5</span><a href="#s5">Drift and Computation Epochs</a></li>
+    <li><span class="toc-num">§6</span><a href="#s6">Example: A Merging Double-Well</a></li>
+    <li><span class="toc-num">§7</span><a href="#s7">What the Framework Left Unexplained</a></li>
+    <li><span class="toc-num">§8</span><a href="#s8">Entropy Production and Lumpability</a></li>
+    <li><span class="toc-num">§9</span><a href="#s9">Thermodynamic Computation Epochs</a></li>
+    <li><span class="toc-num">§10</span><a href="#s10">Causal Computation Gain</a></li>
+    <li><span class="toc-num">§11</span><a href="#s11">Co-Dissipation</a></li>
+    <li><span class="toc-num">§12</span><a href="#s12">The Unified Picture</a></li>
+    <li><span class="toc-num">§13</span><a href="#s13">Discussion</a></li>
+    <li><span class="toc-num">Refs</span><a href="#refs">References</a></li>
+  </ol>
+</nav>
+
+<article>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PART I
+═══════════════════════════════════════════════════════════════ -->
+<div class="part">
+  <p class="part-label">Part I</p>
+  <p class="part-title">The Structure of Emergent Computation</p>
+</div>
+
+<!-- §1 -->
+<section id="s1">
+  <div class="sec-header">
+    <span class="sec-num">§ 1</span>
+    <h2>Framing</h2>
+  </div>
+
+  <p>Suppose the world, at its base, is neither discrete nor symbolic, not even lawful in the exact sense we write down in equations, but instead a ceaselessly evolving continuous process glimpsed only through the coarse lens of finite resolution. Then what we call <em>physical law</em>, <em>stable object</em>, and <em>computation</em> may each be a scale-dependent compression of that underlying flux, summoned into apparent solidity by the particular vantage of an observer.</p>
+
+  <p>Let \(Z\) denote the underlying process, and let</p>
+  <div class="eq">\[ X_t = \Phi_{\ell,\tau}(Z) \]</div>
+  <p>be the effective description visible at spatial scale \(\ell\) and temporal scale \(\tau\). The proposal is that emergence unfolds in stages, with each transition crystallising latent structure into something that can be named and tracked:</p>
+
+  <div class="flow">
+    <span class="flow-node">continuous process</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node">effective lawfulness</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node">stable coarse-grained states</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node">symbolic computation</span>
+  </div>
+
+  <p>The central question is when this crystallisation goes all the way: <strong>when does a continuous physical process genuinely support a finite symbolic computation?</strong> The answer advanced here is precise: only when there exists a coarse-graining that is simultaneously <em>decodable</em> by an observer, <em>stable</em> over the relevant timescale, and <em>dynamically closed</em>, meaning the next coarse-grained state depends principally on the current one, not on the hidden microstructure within it. The first two conditions yield an operational alphabet. The third is what makes that alphabet compute.</p>
+</section>
+
+<!-- §2 -->
+<section id="s2">
+  <div class="sec-header">
+    <span class="sec-num">§ 2</span>
+    <h2>Setup</h2>
+  </div>
+
+  <p>Fix a sampling interval \(\Delta > 0\) and define the sequence of sampled effective states</p>
+  <div class="eq">\[ X_n := X_{n\Delta}, \qquad n = 0, 1, \ldots, N. \]</div>
+
+  <p>Let \(\Pi : \mathcal{X} \to [k] := \{1, \ldots, k\}\) be a coarse-graining map, and define the induced symbolic process</p>
+  <div class="eq">\[ A_n := \Pi(X_n). \]</div>
+
+  <p>Let \(R_n\) be the observer's record at time \(n\Delta\). We interpret \(A_n\) as a candidate symbolic state, a discrete token purporting to represent the system's macroscopic situation. The question is when \(A_n\) behaves like a genuine computational state rather than an arbitrary label pinned to a restless continuum.</p>
+</section>
+
+<!-- §3 -->
+<section id="s3">
+  <div class="sec-header">
+    <span class="sec-num">§ 3</span>
+    <h2>Three Conditions</h2>
+  </div>
+
+  <h3>(i) Decodability</h3>
+  <p>An observer must be able to recover the current symbol from whatever record is actually accessible:</p>
+  <div class="eq">\[ I(R_n;\, A_n) \;\ge\; H(A_n) - \varepsilon, \]</div>
+  <p>or equivalently \(H(A_n \mid R_n) \le \varepsilon\). By Fano's inequality this furnishes a decoder \(\hat{A}_n = \delta_n(R_n)\) with error probability \(P_e^{(n)} \le p_\varepsilon\), where \(p_\varepsilon \to 0\) as \(\varepsilon \to 0\). A symbol that cannot be read is not a symbol at all.</p>
+
+  <h3>(ii) Stability</h3>
+  <p>The coarse-grained state must persist across one time-step:</p>
+  <div class="eq">\[ \Pr(A_{n+1} \neq A_n) \;\le\; \eta. \]</div>
+  <p>This persistence condition ensures the alphabet does not churn faster than it can be used.</p>
+
+  <h3>(iii) Approximate Lumpability</h3>
+  <p>This is the decisive condition, the one that promotes a readable, persistent alphabet into a genuine computation. For every symbol \(i\) and every step \(n\),</p>
+  <div class="eq">\[
+    \sup_{\substack{x,\, y \,:\\ \Pi(x) = \Pi(y) = i}}
+    \bigl|
+      \mathcal{L}(A_{n+1} \mid X_n = x)
+      -
+      \mathcal{L}(A_{n+1} \mid X_n = y)
+    \bigr|_{\mathrm{TV}}
+    \;\le\; \lambda.
+  \]</div>
+
+  <p>Once you know which macrostate the system occupies, the precise microscopic details within that macrostate tell you almost nothing more about where it will go next. The symbol is enough. The continuous texture beneath it is, to leading order, irrelevant to the future of the symbol itself.</p>
+</section>
+
+<!-- §4 -->
+<section id="s4">
+  <div class="sec-header">
+    <span class="sec-num">§ 4</span>
+    <h2>Emergent Finite-State Dynamics</h2>
+  </div>
+
+  <div class="box theorem" data-label="Theorem 1: Markov Approximation">
+    <p>Let \(X_n\) be a sampled continuous-state process and \(A_n = \Pi(X_n)\) its coarse-grained symbolic shadow. If decodability, stability, and approximate lumpability all hold on \(n = 0, \ldots, N\), then there exists a time-inhomogeneous Markov chain \(M_0, M_1, \ldots, M_N \in [k]\) with transition kernels</p>
+    <div class="eq">\[ K_n(j \mid i) := \Pr(A_{n+1} = j \mid A_n = i) \]</div>
+    <p>such that</p>
+    <div class="eq">\[
+      \bigl|
+        \mathcal{L}(\hat{A}_0, \hat{A}_1, \ldots, \hat{A}_N)
+        \;-\;
+        \mathcal{L}(M_0, M_1, \ldots, M_N)
+      \bigr|_{\mathrm{TV}}
+      \;\le\; N(\lambda + 2p_\varepsilon).
+    \]</div>
+    <p>Stability implies metastability of the symbolic chain:</p>
+    <div class="eq">\[ \Pr(M_{n+1} = M_n) = \sum_i \Pr(A_n = i)\, K_n(i \mid i) \;\ge\; 1 - \eta. \]</div>
+  </div>
+
+  <div class="proof">
+    <span class="proof-label">Proof sketch</span>
+    <p>Decodability supplies a low-error decoder \(\hat{A}_n\) from the accessible record \(R_n\). Approximate lumpability then says that, conditioned on \(A_n = i\), the distribution of \(A_{n+1}\) depends only weakly on the hidden continuous state \(X_n\). Thus the symbolic dynamics tracks the Markov kernel \(K_n(\,\cdot \mid i)\) step by step. Each step incurs at most \(\lambda\) from lumpability error, plus \(p_\varepsilon\) for decoding the present state and another \(p_\varepsilon\) for decoding the next. Summing over \(N\) steps yields the bound \(N(\lambda + 2p_\varepsilon)\). Stability enforces diagonal dominance on average.</p>
+  </div>
+
+  <p>This theorem is the structural core. Decodability together with stability had yielded an observer-relative operational alphabet, something that can be named and whose name endures. Approximate lumpability closes the loop: one obtains not merely symbols but an emergent symbolic dynamics, a finite-state machine that was nowhere explicitly written into the continuous substrate, yet arises inevitably from its organisation at the chosen scale.</p>
+</section>
+
+<!-- §5 -->
+<section id="s5">
+  <div class="sec-header">
+    <span class="sec-num">§ 5</span>
+    <h2>Drift and Computation Epochs</h2>
+  </div>
+
+  <p>Real physical systems need not maintain the same coarse-grained organisation indefinitely. Suppose the symbolic transition kernels drift slowly,</p>
+  <div class="eq">\[ \sup_i \bigl|K_{n+1}(\,\cdot \mid i) - K_n(\,\cdot \mid i)\bigr|_{\mathrm{TV}} \;\le\; \rho. \]</div>
+
+  <p>Over a window of length \(m\), the total discrepancy between the symbolic trajectory and a single fixed finite-state machine becomes</p>
+  <div class="eq">\[ m(\lambda + 2p_\varepsilon) + \frac{\rho\, m(m-1)}{2}. \]</div>
+
+  <div class="box definition" data-label="Definition: Computation Epoch">
+    <p>Given tolerance \(\theta\), define the computation epoch as the longest window over which the emergent finite-state description remains reliable:</p>
+    <div class="eq">\[
+      \Tc(\theta) \;:=\; \max\!\left\{m\Delta \;:\;
+        m(\lambda + 2p_\varepsilon) + \frac{\rho\, m(m-1)}{2} \;\le\; \theta
+      \right\}.
+    \]</div>
+  </div>
+
+  <p>The right question is no longer merely whether a system computes, but <em>for how long</em>, at <em>what scale</em>, and to <em>what accuracy</em>. Computation becomes a temporal phenomenon: a regime that opens when conditions align and closes as they drift apart.</p>
+</section>
+
+<!-- §6 -->
+<section id="s6">
+  <div class="sec-header">
+    <span class="sec-num">§ 6</span>
+    <h2>Example: A Merging Double-Well</h2>
+  </div>
+
+  <p>Consider the effective one-dimensional Langevin dynamics</p>
+  <div class="eq">\[
+    \dot{x} = -\frac{\partial V}{\partial x}(x;\, g(t)) + \xi(t),
+    \qquad
+    V(x;\, g) = x^4 - g x^2.
+  \]</div>
+
+  <p>For \(g > 0\), the potential harbours two metastable wells at \(x_\pm = \pm\sqrt{g/2}\). Define the binary coarse-graining</p>
+  <div class="eq">\[
+    \Pi(x) =
+    \begin{cases}
+      L, & x < 0, \\[2pt]
+      R, & x \ge 0.
+    \end{cases}
+  \]</div>
+
+  <p>When the barrier is high, crossing events are rare: \(\Pr(A_{n+1} \neq A_n) \ll 1\). The sign of \(x\) is easily observed, so decodability is excellent. And when noise is small relative to barrier height, transition probabilities depend only weakly on the precise position within each well; lumpability is good. Theorem 1 then certifies that the system behaves, over that epoch, like an emergent one-bit Markov machine. It is, in every meaningful operational sense, a memory.</p>
+
+  <p>Now let the control parameter decay: \(g(t) = g_0 - \alpha t\). As \(g(t) \to 0\), the two wells merge. Crossing events become frequent, stability deteriorates, and lumpability degrades as the particle's exact position begins to matter for its future. The coarse-graining \(\Pi\) persists syntactically; \(L\) and \(R\) remain well-defined labels, but they no longer track genuine metastable sectors. The epoch ends. The one-bit computation dissolves. The example makes vivid a point the theorem states in the abstract: <em>the boundary of computation is the boundary of metastability</em>.</p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PART II
+═══════════════════════════════════════════════════════════════ -->
+<div class="part">
+  <p class="part-label">Part II</p>
+  <p class="part-title">The Thermodynamic Foundation</p>
+</div>
+
+<!-- §7 -->
+<section id="s7">
+  <div class="sec-header">
+    <span class="sec-num">§ 7</span>
+    <h2>What the Framework Left Unexplained</h2>
+  </div>
+
+  <p>Part I established conditions under which a continuous process admits emergent computation and quantified the epoch over which that computation endures. But it treats lumpability as a datum, a property one either has or does not, and says nothing about where it comes from, how it can be achieved, or what it costs. Two questions were left entirely open.</p>
+
+  <p><em>First:</em> what physical property of a system causes lumpability to be good (small \(\lambda\)) rather than poor? Classical lumpability theory <span class="lit">Kemeny &amp; Snell 1960</span> <span class="lit">Buchholz 1994</span> characterises lumpability for Markov chains in purely structural terms but never asks what dynamics <em>produces</em> those structures in physical systems.</p>
+
+  <p><em>Second:</em> even granting perfect lumpability, the framework does not distinguish between a system that merely <em>mimics</em> a finite-state machine and one that is genuinely causally organised at the macro level. The distinction, present in philosophy of mind and causal modelling, has no formal home in the existing construction. <span class="lit">Dennett 1991</span> introduced the vocabulary of real patterns; <span class="lit">Hoel et al. 2013</span> gave it a measure. Neither is connected to lumpability.</p>
+
+  <p>We address both gaps. The answers turn out to be intimately related: <em>the same thing that makes lumpability good makes causal emergence possible</em>, and that thing is non-equilibrium dissipation.</p>
+</section>
+
+<!-- §8 -->
+<section id="s8">
+  <div class="sec-header">
+    <span class="sec-num">§ 8</span>
+    <h2>Entropy Production and the Sharpening of Macro-Boundaries</h2>
+  </div>
+
+  <p>Let the micro-dynamics be a continuous-time Markov chain on a state space \(\Omega\) with generator \(Q\) and stationary distribution \(\pi\). The entropy production rate is <span class="lit">Schnakenberg 1976</span></p>
+  <div class="eq">\[
+    \sigma(Q) \;=\; \frac{1}{2}\sum_{x \neq y}
+    \bigl(\pi_x Q_{xy} - \pi_y Q_{yx}\bigr)
+    \log\frac{\pi_x Q_{xy}}{\pi_y Q_{yx}} \;\ge\; 0,
+  \]</div>
+  <p>with equality if and only if \(Q\) satisfies detailed balance. For the sampled discrete-time chain \(P = e^{Q\Delta}\), let \(\lambda(P, \Pi)\) denote the lumpability parameter under coarse-graining \(\Pi\).</p>
+
+  <p>The intuition is straightforward. Lumpability fails when two micro-states \(x, y\) in the same macro-cell \(i\) have noticeably different escape distributions to other cells. In an equilibrium system, detailed balance ties escape rates rigidly to local Boltzmann factors, generically producing \(\lambda > 0\). A non-equilibrium probability current can be tuned to <em>equalise</em> the escape rates from within each cell, at the cost of dissipation, thereby reducing \(\lambda\).</p>
+
+  <h3>The two-cell model</h3>
+
+  <p>Suppose \(k = 2\) macro-states \(\{L, R\}\) with \(m = 4\) micro-states \(\{l_1, l_2, r_1, r_2\}\), with \(\Pi(l_i) = L\) and \(\Pi(r_i) = R\). The lumpability condition on the \(L \to R\) escape probability is</p>
+  <div class="eq">\[
+    \lambda \;=\; \bigl|(P_{l_1 r_1} + P_{l_1 r_2}) - (P_{l_2 r_1} + P_{l_2 r_2})\bigr|.
+  \]</div>
+
+  <p>Let \(P = P_{\mathrm{eq}} + \varepsilon D\), where \(P_{\mathrm{eq}}\) satisfies detailed balance and \(D\) is an antisymmetric perturbation aligned with \(\Pi\): it drives probability from \(l_1\) toward \(l_2\), equalising their escape rates, without directly driving inter-cell transitions. Then to first order in \(\varepsilon\),</p>
+  <div class="eq">\[
+    \lambda(P_{\mathrm{eq}} + \varepsilon D,\, \Pi)
+    \;=\; \lambda(P_{\mathrm{eq}},\Pi) - c(\Pi)\,\varepsilon + O(\varepsilon^2),
+  \]</div>
+  <p>where \(c(\Pi) > 0\) depends on the geometry of the coarse-graining. Since \(\sigma(P) = \Theta(\varepsilon^2)\), we have \(\varepsilon = \Theta(\sigma^{1/2})\), and substituting yields the central inequality.</p>
+
+  <div class="box theorem" data-label="Theorem 2: Dissipation-Lumpability Inequality">
+    <p>For the two-cell micro-chain with optimally aligned driving,</p>
+    <div class="eq">\[
+      \lambda(P,\,\Pi)
+      \;=\; \lambda_{\mathrm{eq}}(\Pi) - c(\Pi)\,\sqrt{\sigma(P)} + O(\sigma(P)),
+    \]</div>
+    <p>where \(\lambda_{\mathrm{eq}}(\Pi) := \lambda(P_{\mathrm{eq}}, \Pi)\) is the equilibrium lumpability error and \(c(\Pi) > 0\). Lumpability is a decreasing function of entropy production. It reaches zero at the critical dissipation rate</p>
+    <div class="eq">\[
+      \sigma_c(\Pi) \;:=\; \left(\frac{\lambda_{\mathrm{eq}}(\Pi)}{c(\Pi)}\right)^{\!2}.
+    \]</div>
+  </div>
+
+  <p>The result has a clean physical reading. Entropy production buys lumpability. A system with no dissipation has whatever lumpability its equilibrium structure happens to provide, which is typically poor, because detailed balance forces micro-states within a cell to maintain distinct escape tendencies. A driven system can sharpen its macro-boundaries at the cost of maintaining non-equilibrium currents. The improvement saturates: at \(\sigma = \sigma_c\), the macro-boundaries are perfectly sharp.</p>
+</section>
+
+<!-- §9 -->
+<section id="s9">
+  <div class="sec-header">
+    <span class="sec-num">§ 9</span>
+    <h2>Thermodynamic Computation Epochs</h2>
+  </div>
+
+  <p>Plugging Theorem 2 into the computation epoch formula gives epoch length as an explicit function of dissipation. For a system with power budget \(\dot{W}\), the entropy production rate is \(\sigma = \dot{W}/(k_BT)\) by the second law.</p>
+
+  <div class="box definition" data-label="Definition: Thermodynamic Computation Epoch">
+    <p>Define the power-dependent lumpability error</p>
+    <div class="eq">\[
+      \lambda(\dot{W}) \;:=\; \max\!\left(0,\; \lambda_{\mathrm{eq}} - c\sqrt{\frac{\dot{W}}{k_BT}}\right)
+    \]</div>
+    <p>and the thermodynamic computation epoch</p>
+    <div class="eq">\[
+      \Tc(\theta, \dot{W}) \;:=\; \max\!\left\{m\Delta \;:\;
+        m\!\left(\lambda(\dot{W}) + 2p_\varepsilon\right) + \frac{\rho\,m(m-1)}{2} \;\le\; \theta
+      \right\}.
+    \]</div>
+  </div>
+
+  <p>Three regimes emerge. <em>Subcritical</em> (\(\dot{W} < \dot{W}_c\)): lumpability remains positive and the epoch is finite, growing as the budget increases. <em>Critical</em> (\(\dot{W} = \dot{W}_c\)): lumpability reaches zero; in the ideal case \(\rho = p_\varepsilon = 0\), the epoch diverges. <em>Supercritical</em> (\(\dot{W} > \dot{W}_c\)): additional driving begins to destabilise the computation by increasing inter-cell crossing rates, and the epoch shrinks again. There is therefore an optimal power \(\dot{W}^*\) near the critical point.</p>
+
+  <div class="box corollary" data-label="Corollary: Power-Duration Trade-off">
+    <p>In the subcritical regime,</p>
+    <div class="eq">\[
+      \Tc(\theta, \dot{W}) \cdot \bigl(\lambda_{\mathrm{eq}} - c\sqrt{\dot{W}/k_BT}\bigr)
+      \;\approx\; \theta\,\Delta.
+    \]</div>
+    <p>Epoch length diverges as \(\dot{W} \to \dot{W}_c\), and a system that cannot dissipate achieves only \(\Tc^{(0)} = \theta\Delta / (\lambda_{\mathrm{eq}} + 2p_\varepsilon)\).</p>
+  </div>
+
+  <p>This is the first explicit relation between a physical energy budget and the temporal validity of an emergent computation. It is not an analogy: it is a bound, derivable from the second law together with the dissipation-lumpability inequality.</p>
+</section>
+
+<!-- §10 -->
+<section id="s10">
+  <div class="sec-header">
+    <span class="sec-num">§ 10</span>
+    <h2>Causal Computation Gain and the Necessity of Non-Equilibrium</h2>
+  </div>
+
+  <p>Theorem 1 asks whether the observable symbolic trajectory is close in total variation to a Markov chain. But closeness in distribution is a statistical criterion; it does not address whether the emergent macro-dynamics has genuine <em>causal power</em> at the macro scale, or whether it is merely a shadow cast by micro-level causes that happen to look Markovian when coarse-grained. We borrow Hoel's effective information <span class="lit">Hoel et al. 2013</span> to make this distinction rigorous.</p>
+
+  <p>For a Markov kernel \(K\) on \([k]\), the effective information under uniform intervention is</p>
+  <div class="eq">\[
+    \EI(K) \;:=\; H\!\left(\frac{1}{k}\sum_i K(\cdot\mid i)\right)
+    \;-\; \frac{1}{k}\sum_i H(K(\cdot\mid i)).
+  \]</div>
+
+  <p>For the micro-dynamics \(P\) on \(\Omega\) viewed through \(\Pi\), the projected effective information is</p>
+  <div class="eq">\[
+    \EI(P, \Pi) \;:=\;
+    H\!\left(\sum_x \tfrac{1}{m}\,\Pi_* P(\cdot \mid x)\right)
+    - \frac{1}{m}\sum_x H(\Pi_* P(\cdot \mid x)).
+  \]</div>
+
+  <div class="box definition" data-label="Definition: Causal Computation Gain">
+    <p>The causal computation gain of the coarse-graining \(\Pi\) under micro-dynamics \(P\) is</p>
+    <div class="eq">\[
+      \CCG(\Pi, P) \;:=\; \EI(K) \;-\; \EI(P,\Pi).
+    \]</div>
+    <p>The system exhibits <em>genuine causal computation</em> when \(\CCG(\Pi, P) > 0\): knowing the macro-state and letting the macro-dynamics evolve gives more causal information about the next macro-state than tracing the full micro-dynamics to the macro level.</p>
+  </div>
+
+  <div class="box theorem" data-label="Theorem 3: Equilibrium Cannot Causally Compute">
+    <p>If \(P\) satisfies detailed balance (\(\sigma(P) = 0\)), then for every coarse-graining \(\Pi\),</p>
+    <div class="eq">\[
+      \CCG(\Pi, P) \;\le\; 0.
+    \]</div>
+    <p>Genuine causal computation requires strictly positive entropy production: \(\CCG(\Pi, P) > 0 \Rightarrow \sigma(P) > 0\).</p>
+  </div>
+
+  <div class="proof">
+    <span class="proof-label">Proof sketch</span>
+    <p>For a reversible chain, the stationary measure \(\pi\) satisfies \(\pi_x P_{xy} = \pi_y P_{yx}\). The intra-cell variation in \(\pi\), measured by \(D_{\mathrm{KL}}(\pi_{|i} \| u_{|i})\), the divergence between the conditional stationary distribution within cell \(i\) and the uniform, contributes positively to \(\EI(P, \Pi)\) but not to \(\EI(K)\), because the emergent kernel \(K\) averages over intra-cell structure by definition. Detailed balance forces this intra-cell variation to track the local potential landscape, which prevents \(\EI(K)\) from exceeding \(\EI(P, \Pi)\); a data processing inequality applied to the intervention distribution closes the argument. Away from equilibrium, non-equilibrium currents within each cell can reduce the intra-cell variation, equalising the micro-states seen from outside, thereby allowing \(\EI(K) > \EI(P, \Pi)\). \(\square\)</p>
+  </div>
+
+  <div class="keyresult">
+    Equilibrium is the thermodynamic condition for the absence of genuine computation.<br>
+    Dissipation is not the cost of computation. It is the mechanism.
+  </div>
+
+  <p>Theorem 3 is, we believe, the correct formal statement of the intuition that life computes because it dissipates. It is not a metaphor for thermodynamic irreversibility, nor an analogy to Landauer erasure. It is a precise causal claim: the only way a physical system can achieve a macro-level causal organisation that exceeds the micro-level causal organisation, viewed through the same coarse-graining, is to maintain nonzero entropy production.</p>
+</section>
+
+<!-- §11 -->
+<section id="s11">
+  <div class="sec-header">
+    <span class="sec-num">§ 11</span>
+    <h2>Co-Dissipation: The Observer's Thermodynamic Share</h2>
+  </div>
+
+  <p>The decodability condition \(H(A_n \mid R_n) \le \varepsilon\) requires the observer to maintain a record \(R_n\) with high mutual information with the symbolic state. This is a physical requirement: the record is a physical system, and sustaining it has a thermodynamic cost. By Landauer's principle <span class="lit">Landauer 1961</span> <span class="lit">Bennett 1982</span>, the cost of maintaining a record with decoding error \(p_\varepsilon\) over one time step requires the erasure of at least \(H(p_\varepsilon)\) bits, at thermodynamic cost</p>
+  <div class="eq">\[
+    \dot{W}_{\mathrm{obs}} \;\ge\; \frac{k_BT\ln 2}{\Delta} \cdot H(p_\varepsilon).
+  \]</div>
+
+  <p>The total thermodynamic budget for sustaining a computation epoch of length \(\Tc\) must include both the system's dissipation and the observer's recording cost:</p>
+  <div class="eq">\[
+    W_{\mathrm{total}}(\Tc) \;=\; \bigl(\dot{W}_{\mathrm{sys}} + \dot{W}_{\mathrm{obs}}\bigr)\cdot \Tc.
+  \]</div>
+
+  <div class="box theorem" data-label="Theorem 4: Co-Dissipation Bound">
+    <p>For a computation epoch of length \(\Tc\) at tolerance \(\theta\) and sampling interval \(\Delta\), the minimum total energy expenditure satisfies</p>
+    <div class="eq">\[
+      W_{\mathrm{total}}^*(\Tc) \;\ge\;
+      k_BT\cdot \Tc \cdot \sigma_c(\Pi) \cdot \left(1 - \frac{\theta}{\Tc/\Delta \cdot \lambda_{\mathrm{eq}}}\right)^{\!2}
+      \;+\;
+      k_BT\ln 2 \cdot \frac{\Tc}{\Delta} \cdot H(p_\varepsilon^*).
+    \]</div>
+    <p>In the limit \(\theta \to 0\) (zero tolerance), \(W_{\mathrm{total}}^*\) diverges: error-free computation has infinite thermodynamic cost.</p>
+  </div>
+
+  <p>The co-dissipation picture changes what we should mean by a physical computer. A computation is not a property of a system in isolation; it is a property of the system-observer pair. A universe with no observers capable of maintaining records cannot compute, not because computation requires consciousness, but because decodability is a thermodynamic condition on the observer. The system dissipates to sharpen its macro-boundaries; the observer dissipates to read them. Both expenditures are necessary, and both appear in the epoch bound.</p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PART III
+═══════════════════════════════════════════════════════════════ -->
+<div class="part">
+  <p class="part-label">Part III</p>
+  <p class="part-title">Synthesis and Open Questions</p>
+</div>
+
+<!-- §12 -->
+<section id="s12">
+  <div class="sec-header">
+    <span class="sec-num">§ 12</span>
+    <h2>The Unified Picture</h2>
+  </div>
+
+  <p>The four theorems together constitute a single coherent framework. Part I established that continuous dynamics can support emergent computation when decodability, stability, and lumpability coincide. Part II showed that these conditions are thermodynamically grounded: lumpability is purchased by dissipation, causal emergence requires it, and the observer's recording costs belong in the same budget. The spine of the framework runs as follows:</p>
+
+  <div class="flow">
+    <span class="flow-node">free energy input \(\dot{W}\)</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node">entropy production \(\sigma\)</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node">reduced \(\lambda\)</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-node">extended epoch \(\Tc\)</span>
+    <span class="flow-arrow">&amp;</span>
+    <span class="flow-node">causal gain \(\CCG > 0\)</span>
+  </div>
+
+  <div class="table-scroll">
+    <table class="contrib-table">
+    <thead>
+      <tr>
+        <th>Result</th>
+        <th>What it establishes</th>
+        <th>Prior art engaged</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Thm 1</td>
+        <td>Continuous process ≈ finite-state machine when three conditions hold</td>
+        <td>Kemeny &amp; Snell; Buchholz; Shannon</td>
+      </tr>
+      <tr>
+        <td>§5</td>
+        <td>Computation is temporally bounded; epoch length quantified</td>
+        <td>Freidlin-Wentzell; Landauer</td>
+      </tr>
+      <tr>
+        <td>Thm 2</td>
+        <td>Dissipation reduces lumpability error as \(\sqrt{\sigma}\)</td>
+        <td>Schnakenberg; Crooks; Jarzynski</td>
+      </tr>
+      <tr>
+        <td>§9</td>
+        <td>Epoch length increases with power budget; critical point exists</td>
+        <td>Crooks fluctuation theorem</td>
+      </tr>
+      <tr>
+        <td>Thm 3</td>
+        <td>Equilibrium cannot exhibit causal emergence</td>
+        <td>Hoel et al.; Pearl do-calculus</td>
+      </tr>
+      <tr>
+        <td>Thm 4</td>
+        <td>System and observer co-dissipate; joint bound on epoch cost</td>
+        <td>Landauer; Bennett; Maxwell's demon</td>
+      </tr>
+    </tbody>
+    </table>
+  </div>
+
+  <div class="boxed-final">
+    <span class="ornament">· · ·</span>
+    <p>A physical computation is an emergent finite-state dynamics carved from continuous process by readable, persistent, and approximately lumpable structure, sustained against drift by dissipation, and bounded in duration by the joint thermodynamic budget of the system and its observer.</p>
+  </div>
+</section>
+
+<!-- §13 -->
+<section id="s13">
+  <div class="sec-header">
+    <span class="sec-num">§ 13</span>
+    <h2>Discussion and Open Problems</h2>
+  </div>
+
+  <p>Several open problems remain, each pointing toward a deeper theory.</p>
+
+  <h3>Generalising the dissipation-lumpability inequality</h3>
+  <p>Theorem 2 is proven in the two-cell perturbative regime. The inequality \(\lambda \ge \lambda_{\mathrm{eq}} - c\sqrt{\sigma}\) should hold generally, or at least for coarse-grainings whose boundaries align with the dominant non-equilibrium currents, but the proof in full generality requires tools from large-deviation theory and the geometry of Wasserstein spaces that go beyond the present sketch. The natural conjecture is that the inequality holds whenever the coarse-graining is a Lyapunov function for the deterministic drift, a condition that connects the problem to the theory of metastability developed by Freidlin and Wentzell <span class="lit">Freidlin &amp; Wentzell 1984</span>.</p>
+
+  <h3>Rigorous causal emergence</h3>
+  <p>Theorem 3 rests on an information-monotonicity argument for reversible chains. Making this fully rigorous requires careful treatment of the intervention distribution in the continuous-time limit and a precise definition of effective information for chains that are not finite or stationary. The connection to Pearl's do-calculus <span class="lit">Pearl 2009</span> is suggestive: causal computation gain measures whether the emergent macro-intervention distribution is further from the uniform than the projected micro-intervention distribution, and this framing may allow a cleaner proof via the properties of causal graphs.</p>
+
+  <h3>Optimal coarse-graining</h3>
+  <p>The framework takes \(\Pi\) as fixed throughout. But nothing forces this choice. Given a system and a power budget, one can ask: which coarse-graining maximises the causal computation gain \(\CCG(\Pi, P)\) subject to the co-dissipation budget? This is a well-posed variational problem. Its solution would define the <em>natural computation</em> supported by a given physical system at a given power level: the coarse-graining that matter, dissipating at rate \(\sigma\), most wants to compute. This reformulation is perhaps the most important consequence of the framework: rather than asking whether a system computes, we ask what it optimally computes, and the answer is determined by its thermodynamic situation.</p>
+
+  <h3>Biological implications</h3>
+  <p>Living systems maintain far-from-equilibrium states precisely by consuming free energy at rates tuned to sustain the metastable structures on which their computations depend. The framework suggests that the information processing capacity of a cell, a neural circuit, or an organism is bounded not merely by the speed or size of its components, but by its power budget and the geometry of its coarse-grainings. Whether the optimal coarse-graining problem, solved for biological systems, recovers known features of neural coding or metabolic organisation is an open empirical question, but one the framework makes precise enough to ask.</p>
+</section>
+
+<!-- §Refs -->
+<section id="refs">
+  <div class="sec-header">
+    <span class="sec-num">Refs</span>
+    <h2>References</h2>
+  </div>
+  <div class="refs">
+    <p><span class="ref-key">Bennett 1982</span>. The thermodynamics of computation: a review. <em>Int. J. Theor. Phys.</em> 21, 905–940. Foundational treatment of Landauer's principle and reversible computation.</p>
+    <p><span class="ref-key">Buchholz 1994</span>. Exact and ordinary lumpability in finite Markov chains. <em>J. Appl. Probab.</em> 31, 59–75. Structural characterisation of lumpability; no thermodynamic content.</p>
+    <p><span class="ref-key">Crooks 1999</span>. Entropy production fluctuation theorem and the nonequilibrium work relation for free energy differences. <em>Phys. Rev. E</em> 60, 2721. Fluctuation theorem underlying the epoch-power derivation.</p>
+    <p><span class="ref-key">Dennett 1991</span>. Real patterns. <em>Journal of Philosophy</em> 88(1), 27–51. The philosophical framing for observer-relative emergence.</p>
+    <p><span class="ref-key">Freidlin &amp; Wentzell 1984</span>. Random Perturbations of Dynamical Systems. Springer. Metastability theory for stochastic systems; covers the double-well in full generality.</p>
+    <p><span class="ref-key">Hoel, Albantakis, Tononi 2013</span>. Quantifying causal emergence shows that macro can beat micro. <em>PNAS</em> 110(49), 19790–19795. Defines effective information and causal emergence; no connection to lumpability or thermodynamics.</p>
+    <p><span class="ref-key">Jarzynski 1997</span>. Nonequilibrium equality for free energy differences. <em>Phys. Rev. Lett.</em> 78, 2690. Connects free energy dissipation to trajectory statistics.</p>
+    <p><span class="ref-key">Kemeny &amp; Snell 1960</span>. Finite Markov Chains. Van Nostrand. Classical lumpability; the algebraic starting point for the present work.</p>
+    <p><span class="ref-key">Landauer 1961</span>. Irreversibility and heat generation in the computing process. <em>IBM J. Res. Dev.</em> 5, 183–191. The erasure bound underlying the co-dissipation calculation.</p>
+    <p><span class="ref-key">Pearl 2009</span>. Causality: Models, Reasoning and Inference. Cambridge. The do-calculus; used in the causal emergence definitions.</p>
+    <p><span class="ref-key">Schnakenberg 1976</span>. Network theory of microscopic and macroscopic behavior of master equation systems. <em>Rev. Mod. Phys.</em> 48, 571. Defines entropy production for Markov chains; the thermodynamic backbone of Part II.</p>
+    <p><span class="ref-key">Shannon 1948</span>. A mathematical theory of communication. <em>Bell System Technical Journal</em> 27(3), 379-423; 27(4), 623-656. Foundational source for entropy, mutual information, and coding-theoretic decodability.</p>
+    <p><span class="ref-key">Deuflhard &amp; Weber 2005</span>. Robust Perron cluster analysis in conformation dynamics. <em>Linear Algebra and its Applications</em> 398, 161-184. Spectral and transfer-operator perspective on metastable coarse-grainings.</p>
+    <p><span class="ref-key">Schuette &amp; Sarich 2013</span>. Metastability and Markov State Models in Molecular Dynamics. American Mathematical Society. A modern account of metastability, transfer operators, and spectral gaps.</p>
+  </div>
+</section>
+
+</article>
+</div><!-- /wrap -->
+
+<footer>
+  <span class="footer-text">Dissipation and the Emergence of Computation</span>
+  <span class="footer-text">Non-Equilibrium Statistical Mechanics &nbsp;·&nbsp; Causal Emergence &nbsp;·&nbsp; Computation Theory</span>
+</footer>
+
+</body>
+</html>
+
+
