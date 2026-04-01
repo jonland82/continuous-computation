@@ -365,7 +365,18 @@ body::before {
   transition: transform 0.2s ease;
 }
 
-.paper-link:hover svg { transform: translateX(3px); }
+/* ── DRAFT SECTION ──────────────────────────────────────────────── */
+.draft-section {
+  padding: 2rem 0 3rem;
+}
+
+.draft-desc {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.05rem;
+  color: var(--ink-2);
+  line-height: 1.65;
+  margin-bottom: 1.25rem;
+}
 
 /* ── KEY RESULTS ────────────────────────────────────────────────── */
 .results-section {
@@ -470,6 +481,7 @@ body::before {
 .masthead        { animation: fadeUp 0.8s ease both; animation-delay: 0.1s; }
 .abstract-section{ animation: fadeUp 0.8s ease both; animation-delay: 0.25s; }
 .arc-section     { animation: fadeUp 0.8s ease both; animation-delay: 0.4s; }
+.draft-section   { animation: fadeUp 0.8s ease both; animation-delay: 0.45s; }
 .results-section { animation: fadeUp 0.8s ease both; animation-delay: 0.5s; }
 
 /* ── EQUATIONS ──────────────────────────────────────────────────── */
@@ -503,6 +515,47 @@ body::before {
 @media (max-width: 900px) {
   .results-grid {
     gap: 1.25rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .paper-item {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+    padding-bottom: 1.75rem;
+  }
+  .paper-item:not(:last-child) .paper-number::after {
+    display: none;
+  }
+  .paper-number {
+    align-items: flex-start;
+    padding-top: 0;
+    padding-left: 0.15rem;
+  }
+  .paper-number-circle {
+    width: 1.95rem;
+    height: 1.95rem;
+    font-size: 0.6rem;
+  }
+  .paper-content {
+    padding: 1.25rem 1.15rem;
+  }
+  .paper-tag {
+    font-size: 0.5rem;
+    letter-spacing: 0.24em;
+    line-height: 1.5;
+  }
+  .paper-title {
+    font-size: 0.88rem;
+    line-height: 1.28;
+  }
+  .paper-desc {
+    font-size: 0.98rem;
+    line-height: 1.56;
+  }
+  .paper-link {
+    font-size: 0.56rem;
+    letter-spacing: 0.16em;
   }
 }
 
@@ -664,6 +717,20 @@ body::before {
       </div>
 
     </div>
+  </section>
+
+  <!-- SEPARATE DRAFT -->
+  <section class="draft-section">
+    <div class="section-header">
+      <span class="section-title">Separate Draft</span>
+    </div>
+    <p class="draft-desc">
+      A separate manuscript presents the core finite-horizon argument in single-paper form: readable, stable, approximately lumpable symbols define a computation epoch, and dissipation together with observation sets the physical cost of maintaining it.
+    </p>
+    <a href="arxiv_paper_draft/continuous_computation.pdf" class="paper-link">
+      Read draft PDF
+      <svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </a>
   </section>
 
   <!-- KEY RESULTS -->

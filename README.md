@@ -4,16 +4,36 @@
 
 This repo is about a simple question: when does a continuous physical process count as a real computation rather than just a changing signal? The answer developed here is that computation appears only when coarse-grained states are readable, stable, and predictive, and those properties are usually thermodynamic achievements rather than free gifts of description. The four HTML pages present that argument as an overview plus three connected papers spanning framework, worked examples, and geometry.
 
-This repository is a small static HTML project about when a continuous physical process can genuinely support a finite symbolic computation.
+This repository is a small static HTML project, plus an accompanying paper draft, about when a continuous physical process can genuinely support a finite symbolic computation.
 
-It currently contains four files:
+The top-level contents are:
 
 - [index.html](index.html) - landing page that introduces the three-paper arc and summarizes the central results.
 - [dissipation-and-the-emergence-of-computation.html](dissipation-and-the-emergence-of-computation.html) - the main framework paper.
 - [when-continuous-trajectories-can-and-cannot-compute.html](when-continuous-trajectories-can-and-cannot-compute.html) - the worked examples paper.
 - [the-geometry-of-computable-trajectories.html](the-geometry-of-computable-trajectories.html) - the geometry/structure paper.
+- [arxiv_paper_draft/](arxiv_paper_draft/) - LaTeX manuscript, compiled PDF, and figure assets/scripts associated with the separate paper draft.
 
 There is no build step. Open [index.html](index.html) in a browser to navigate the set.
+
+## Separate Draft
+
+The [`arxiv_paper_draft/`](arxiv_paper_draft/) folder contains a separate manuscript, [`continuous_computation.tex`](arxiv_paper_draft/continuous_computation.tex), titled <em>When Do Continuous Dynamics Allow Finite-State Computation?</em> It is part of the same research program as the site, but it is narrower than the full three-paper web version.
+
+The draft focuses on the finite-horizon core of the project: decodability, one-step stability, and approximate lumpability; the Markov approximation theorem; the computation epoch; the worked `\sin(t)` versus `\sin(1/t)` comparison; the local dissipation-lumpability inequality and power-duration tradeoff; and the observer-cost lower bound on maintaining a computation over a target epoch.
+
+It is not a literal merger of everything on the site. In particular, the current manuscript does not include the site's separate causal computation gain result, and it does not carry over the full geometry paper's stronger global claims about classifying the amenable set, proving measure-zero under Wiener measure, or giving a spectral-gap characterization of the boundary.
+
+The figure-generation scripts in the same folder are:
+
+- [`fig1_script.py`](arxiv_paper_draft/fig1_script.py) generates the two-trajectory comparison used for the paper's dwell-time example, contrasting the amenable `\sin(t)` case with the non-amenable `\sin(1/t)` case under the same binary partition.
+- [`fig2_script.py`](arxiv_paper_draft/fig2_script.py) generates the dissipation-lumpability curve and the power-duration tradeoff plot that support the manuscript's thermodynamic maintenance section.
+- [`fig3_script.py`](arxiv_paper_draft/fig3_script.py) generates a schematic amenable-versus-non-amenable geometry figure for the broader geometry side of the project; it is a supporting repo figure, not one cited in the current manuscript.
+- [`fig4_script.py`](arxiv_paper_draft/fig4_script.py) generates a spectral amenability comparison across ideal tone, narrowband, Brownian-like, and white-noise signal classes; like `fig3_script.py`, it supports the broader project framing rather than the present paper text.
+
+These scripts use Matplotlib and NumPy, with [`fig4_script.py`](arxiv_paper_draft/fig4_script.py) also using SciPy's error function helper. Generated outputs live in [`arxiv_paper_draft/figures/`](arxiv_paper_draft/figures/); the current manuscript uses the first two of those figure PDFs directly. The scripts currently write via a hard-coded `OUTDIR`, so rerunning them in a different checkout may require making that path repo-relative first.
+
+For the compiled manuscript, see [continuous_computation.pdf](arxiv_paper_draft/continuous_computation.pdf).
 
 ## Project Intuition
 
@@ -176,4 +196,3 @@ Across the three papers, the same backbone repeats:
 The repo reframes "physical computation" as a precise question in non-equilibrium statistical mechanics instead of treating computation as automatically present whenever one can impose labels on a system.
 
 That is the unifying idea behind all four HTML files: symbolic computation is an emergent, thermodynamically sustained regime, not a default property of continuous dynamics.
-
