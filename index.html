@@ -378,6 +378,39 @@ body::before {
   margin-bottom: 1.25rem;
 }
 
+.supplement-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.8rem;
+  margin-top: 1rem;
+  color: var(--ink-4);
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.supplement-links-label {
+  color: var(--ink-4);
+}
+
+.supplement-links a {
+  color: var(--ink-3);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.supplement-links a:hover {
+  color: var(--accent);
+  border-color: var(--rule);
+}
+
+.supplement-links-sep {
+  color: var(--rule);
+}
+
 /* ── KEY RESULTS ────────────────────────────────────────────────── */
 .results-section {
   padding: 2rem 0 3rem;
@@ -557,6 +590,10 @@ body::before {
     font-size: 0.56rem;
     letter-spacing: 0.16em;
   }
+  .supplement-links {
+    font-size: 0.58rem;
+    gap: 0.35rem 0.55rem;
+  }
 }
 
 @media (max-width: 600px) {
@@ -731,6 +768,15 @@ body::before {
       Read draft PDF
       <svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
     </a>
+    <div class="supplement-links">
+      <span class="supplement-links-label">Supplementary PDFs</span>
+      <span class="supplement-links-sep">&middot;</span>
+      <a href="supplemental_research_notes/thermodynamic-efficiency-ranking-of-computation-amenable-substrates.pdf">Thermodynamic Efficiency</a>
+      <span class="supplement-links-sep">&middot;</span>
+      <a href="supplemental_research_notes/spectral-bandlimiting-and-compact-window-amenability.pdf">Spectral Bandlimiting</a>
+      <span class="supplement-links-sep">&middot;</span>
+      <a href="supplemental_research_notes/finite-horizon-geometry-of-computational-amenability.pdf">Finite-Horizon Geometry</a>
+    </div>
   </section>
 
   <!-- KEY RESULTS -->

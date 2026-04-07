@@ -13,6 +13,7 @@ The top-level contents are:
 - [when-continuous-trajectories-can-and-cannot-compute.html](when-continuous-trajectories-can-and-cannot-compute.html) - the worked examples paper.
 - [the-geometry-of-computable-trajectories.html](the-geometry-of-computable-trajectories.html) - the geometry/structure paper.
 - [arxiv_paper_draft/](arxiv_paper_draft/) - LaTeX manuscript, compiled PDF, and figure assets/scripts associated with the separate paper draft.
+- [supplemental_research_notes/](supplemental_research_notes/) - supplementary notes extending the thermodynamic, spectral, and finite-horizon geometry sides of the project.
 
 There is no build step. Open [index.html](index.html) in a browser to navigate the set.
 
@@ -34,6 +35,21 @@ The figure-generation scripts in the same folder are:
 These scripts use Matplotlib and NumPy, with [`fig4_script.py`](arxiv_paper_draft/fig4_script.py) also using SciPy's error function helper. Generated outputs live in [`arxiv_paper_draft/figures/`](arxiv_paper_draft/figures/); the current manuscript uses the first two of those figure PDFs directly. The scripts currently write via a hard-coded `OUTDIR`, so rerunning them in a different checkout may require making that path repo-relative first.
 
 For the compiled manuscript, see [continuous_computation.pdf](arxiv_paper_draft/continuous_computation.pdf).
+
+## Supplemental Notes
+
+The [`supplemental_research_notes/`](supplemental_research_notes/) directory contains short extensions that sit alongside the main papers and the arXiv draft rather than replacing them. Start with [`supplemental_research_notes/README.md`](supplemental_research_notes/README.md) for the local overview.
+
+Current contents:
+
+- [`thermodynamic-efficiency-ranking-of-computation-amenable-substrates.md`](supplemental_research_notes/thermodynamic-efficiency-ranking-of-computation-amenable-substrates.md) / [`thermodynamic-efficiency-ranking-of-computation-amenable-substrates.pdf`](supplemental_research_notes/thermodynamic-efficiency-ranking-of-computation-amenable-substrates.pdf) - defines a substrate-independent efficiency preorder on already-amenable computing triples, building on the dissipation-lumpability law and the computation epoch.
+- [`spectral-bandlimiting-and-compact-window-amenability.md`](supplemental_research_notes/spectral-bandlimiting-and-compact-window-amenability.md) / [`spectral-bandlimiting-and-compact-window-amenability.pdf`](supplemental_research_notes/spectral-bandlimiting-and-compact-window-amenability.pdf) - gives a constructive Fourier-side route into compact-window amenability, complementing the geometry paper's transfer-operator spectral discussion and the repo's spectral figure script.
+- [`finite-horizon-geometry-of-computational-amenability.md`](supplemental_research_notes/finite-horizon-geometry-of-computational-amenability.md) / [`finite-horizon-geometry-of-computational-amenability.pdf`](supplemental_research_notes/finite-horizon-geometry-of-computational-amenability.pdf) - recasts the finite-horizon error budget as an observer-indexed region in $(\varepsilon,\eta,\lambda)$-space, linking the framework paper's epoch bounds to the geometry paper's broader amenable-set picture.
+
+Supporting assets in the same folder include the figure files used by the finite-horizon geometry note:
+
+- [`amenability-region-parameter-space.png`](supplemental_research_notes/amenability-region-parameter-space.png)
+- [`observer-relative-amenability-zones.png`](supplemental_research_notes/observer-relative-amenability-zones.png)
 
 ## Project Intuition
 
